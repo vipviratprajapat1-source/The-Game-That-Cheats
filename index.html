@@ -1,0 +1,2988 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="google-site-verification" content="zmWX5NufYpglNkbJKlJRnGRphwTxDJMZn7EVDPB3mHg" />
+  <title>THE GAME THAT CHEATS</title>
+  <style>
+    :root {
+      --ink: #17122d;
+      --paper: #fff8db;
+      --hot: #ff3d81;
+      --gold: #ffd166;
+      --mint: #34f5c5;
+      --sky: #61d8ff;
+      --blue: #4776ff;
+      --purple: #6d3dff;
+      --danger: #ff315a;
+      --shadow: rgba(11, 8, 28, .36);
+      --panel: rgba(23, 18, 45, .88);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255, 255, 255, .16), transparent 22rem),
+        linear-gradient(140deg, #201653 0%, #15112d 45%, #050718 100%);
+      color: var(--paper);
+      font-family: "Trebuchet MS", Verdana, system-ui, sans-serif;
+    }
+
+    button,
+    .button {
+      appearance: none;
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 16px;
+      color: var(--ink);
+      background: linear-gradient(180deg, #fff4a0, #ffbf37);
+      box-shadow: 0 7px 0 #a66313, 0 13px 28px rgba(0, 0, 0, .25);
+      font-weight: 900;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+    }
+
+    button:hover,
+    .button:hover {
+      transform: translateY(-2px);
+      filter: saturate(1.15);
+      box-shadow: 0 9px 0 #a66313, 0 16px 32px rgba(0, 0, 0, .32);
+    }
+
+    button:active,
+    .button:active {
+      transform: translateY(5px);
+      box-shadow: 0 2px 0 #a66313, 0 6px 16px rgba(0, 0, 0, .25);
+    }
+
+    #app {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: max(10px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(10px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
+    }
+
+    #gameShell {
+      position: relative;
+      width: min(100vw, 177.777vh);
+      max-width: 1280px;
+      aspect-ratio: 16 / 9;
+      border: 5px solid rgba(255, 255, 255, .18);
+      border-radius: 22px;
+      overflow: hidden;
+      background: #111936;
+      box-shadow: 0 32px 90px rgba(0, 0, 0, .5), inset 0 0 0 4px rgba(0, 0, 0, .2);
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      image-rendering: pixelated;
+      image-rendering: crisp-edges;
+      background: #61d8ff;
+    }
+
+    #hud {
+      position: absolute;
+      inset: 12px 12px auto 12px;
+      z-index: 4;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      pointer-events: none;
+      text-shadow: 0 2px 0 rgba(0, 0, 0, .35);
+    }
+
+    .hudGrid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      max-width: 75%;
+    }
+
+    .hudChip,
+    .hintChip {
+      padding: 7px 10px;
+      border: 2px solid rgba(255, 255, 255, .34);
+      border-radius: 999px;
+      background: rgba(23, 18, 45, .58);
+      backdrop-filter: blur(6px);
+      font-size: clamp(10px, 1.65vw, 15px);
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .hintChip {
+      max-width: 320px;
+      border-color: rgba(255, 209, 102, .62);
+      color: #fff0a6;
+      text-align: right;
+    }
+
+    #toast {
+      position: absolute;
+      left: 50%;
+      top: 72px;
+      z-index: 8;
+      min-width: min(82%, 520px);
+      max-width: 86%;
+      padding: 12px 18px;
+      border: 3px solid rgba(255, 255, 255, .78);
+      border-radius: 18px;
+      background: linear-gradient(180deg, rgba(23, 18, 45, .95), rgba(54, 37, 113, .95));
+      box-shadow: 0 14px 38px rgba(0, 0, 0, .38);
+      color: #fff8db;
+      font-size: clamp(16px, 2.4vw, 24px);
+      font-weight: 900;
+      text-align: center;
+      opacity: 0;
+      transform: translate(-50%, -18px) scale(.95);
+      transition: opacity .16s ease, transform .16s ease;
+      pointer-events: none;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translate(-50%, 0) scale(1);
+    }
+
+    #overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255, 61, 129, .28), transparent 18rem),
+        radial-gradient(circle at 80% 80%, rgba(52, 245, 197, .18), transparent 18rem),
+        rgba(6, 6, 20, .82);
+      backdrop-filter: blur(8px);
+    }
+
+    #overlay.hidden {
+      display: none;
+    }
+
+    .panel {
+      width: min(100%, 860px);
+      max-height: 92%;
+      overflow: auto;
+      padding: clamp(18px, 3vw, 34px);
+      border: 4px solid rgba(255, 255, 255, .25);
+      border-radius: 24px;
+      background:
+        linear-gradient(180deg, rgba(41, 31, 91, .96), rgba(16, 13, 37, .96)),
+        repeating-linear-gradient(0deg, transparent 0 15px, rgba(255, 255, 255, .04) 16px 17px);
+      box-shadow: 0 22px 70px rgba(0, 0, 0, .45), inset 0 0 0 4px rgba(0, 0, 0, .18);
+    }
+
+    .title {
+      margin: 0;
+      color: #fff8db;
+      font-size: clamp(34px, 7vw, 78px);
+      line-height: .92;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      text-shadow: 0 5px 0 #5b267a, 0 10px 0 #201653, 0 18px 32px rgba(0, 0, 0, .35);
+    }
+
+    .subtitle {
+      margin: 12px 0 22px;
+      color: #c5fff1;
+      font-size: clamp(14px, 2.2vw, 20px);
+      font-weight: 800;
+    }
+
+    .menuButtons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .tiny {
+      color: rgba(255, 248, 219, .74);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 12px;
+    }
+
+    .statCard,
+    .achievement {
+      border: 2px solid rgba(255, 255, 255, .15);
+      border-radius: 18px;
+      padding: 14px;
+      background: rgba(255, 255, 255, .07);
+      box-shadow: inset 0 0 0 2px rgba(0, 0, 0, .12);
+    }
+
+    .statCard b,
+    .achievement b {
+      display: block;
+      margin-bottom: 4px;
+      color: #ffe16d;
+      font-size: 21px;
+    }
+
+    .achievement.locked {
+      filter: grayscale(1);
+      opacity: .48;
+    }
+
+    #popupLayer {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    .fakePopup {
+      position: absolute;
+      width: min(330px, 78%);
+      border: 3px solid #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #fff8db;
+      color: var(--ink);
+      box-shadow: 8px 10px 0 rgba(0, 0, 0, .3);
+      animation: popIn .18s ease both;
+      pointer-events: auto;
+    }
+
+    .fakePopup header {
+      padding: 8px 10px;
+      color: white;
+      background: linear-gradient(90deg, #ff315a, #6d3dff);
+      font-weight: 900;
+    }
+
+    .fakePopup p {
+      margin: 0;
+      padding: 12px;
+      font-weight: 800;
+    }
+
+    .fakePopup button {
+      float: right;
+      margin: 0 12px 12px;
+      padding: 8px 12px;
+      border-radius: 10px;
+      box-shadow: 0 4px 0 #a66313;
+      font-size: 12px;
+    }
+
+    @keyframes popIn {
+      from { transform: translateY(12px) scale(.92); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+
+    #mobileControls {
+      position: absolute;
+      inset: auto 12px 12px 12px;
+      z-index: 7;
+      display: none;
+      justify-content: space-between;
+      align-items: end;
+      pointer-events: none;
+    }
+
+    .padGroup {
+      display: flex;
+      gap: 10px;
+      pointer-events: auto;
+    }
+
+    .touchBtn {
+      width: clamp(56px, 14vw, 78px);
+      height: clamp(56px, 14vw, 78px);
+      border: 3px solid rgba(255, 255, 255, .55);
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      background: rgba(23, 18, 45, .58);
+      color: white;
+      font-size: clamp(24px, 7vw, 42px);
+      font-weight: 900;
+      box-shadow: 0 8px 0 rgba(0, 0, 0, .28);
+      touch-action: none;
+    }
+
+    .touchBtn.active {
+      transform: translateY(5px);
+      background: rgba(255, 209, 102, .74);
+      color: var(--ink);
+      box-shadow: 0 3px 0 rgba(0, 0, 0, .28);
+    }
+
+    @media (pointer: coarse), (max-width: 760px) {
+      #mobileControls { display: flex; }
+      #hud { inset: 8px 8px auto 8px; }
+      .hudGrid { max-width: 100%; }
+      .hintChip { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="gameShell">
+      <canvas id="game" width="960" height="540" aria-label="THE GAME THAT CHEATS"></canvas>
+      <div id="hud">
+        <div class="hudGrid" id="hudStats"></div>
+        <div class="hintChip" id="hudHint">A/D or Arrows: Move · Space/W/↑: Jump · H: Heatmap · Esc: Menu</div>
+      </div>
+      <div id="toast"></div>
+      <div id="popupLayer"></div>
+      <div id="mobileControls">
+        <div class="padGroup">
+          <div class="touchBtn" data-control="left">◀</div>
+          <div class="touchBtn" data-control="right">▶</div>
+        </div>
+        <div class="padGroup">
+          <div class="touchBtn" data-control="jump">⤴</div>
+        </div>
+      </div>
+      <div id="overlay"></div>
+    </div>
+  </div>
+
+  <script>
+  (() => {
+    "use strict";
+
+    /*
+      THE GAME THAT CHEATS
+      A single-file canvas platformer. The code is organized as:
+      1. Constants, saves, achievements.
+      2. Menus and UI.
+      3. Audio, input, utility functions.
+      4. Level generation and adaptive troll selection.
+      5. Physics, traps, deaths, wins.
+      6. Rendering and main loop.
+    */
+
+    const canvas = document.getElementById("game");
+    const ctx = canvas.getContext("2d");
+    const overlay = document.getElementById("overlay");
+    const hudStats = document.getElementById("hudStats");
+    const toastEl = document.getElementById("toast");
+    const popupLayer = document.getElementById("popupLayer");
+
+    const W = canvas.width;
+    const H = canvas.height;
+    const STORAGE_KEY = "the-game-that-cheats.save.v1";
+    const GRAVITY = 1550;
+    const MAX_DT = 1 / 30;
+    const PLAYER = { w: 25, h: 34, accel: 2400, maxSpeed: 250, friction: 2100, jump: 585 };
+    const COLORS = ["#ffd166", "#34f5c5", "#ff6b6b", "#8ef6ff", "#b18cff", "#faff70"];
+
+    const deathMessages = [
+      "Skill issue detected.",
+      "That was definitely your fault.",
+      "The game is not cheating.",
+      "Trust me this time.",
+      "Working exactly as intended.",
+      "Perhaps jumping was not the answer.",
+      "Perhaps not jumping was not the answer.",
+      "You almost had it.",
+      "We believe in you.",
+      "That looked painful.",
+      "The spikes have submitted a complaint.",
+      "Gravity sends its regards.",
+      "Nice speedrun. Wrong direction.",
+      "You found the floor DLC.",
+      "The platform union authorized that disappearance.",
+      "Your strategy was bold. Incorrect, but bold.",
+      "No refunds after the first scream.",
+      "The exit moved for personal reasons.",
+      "The tutorial would like a word.",
+      "Maybe try blinking less aggressively."
+    ];
+
+    const specialDeathMessages = {
+      1: "Welcome.",
+      20: "You're learning.",
+      100: "You're committed.",
+      500: "You live here now.",
+      1000: "Legend."
+    };
+
+    const titles = [
+      { deaths: 5000, name: "The Game's Best Customer" },
+      { deaths: 1000, name: "Legend of Failure" },
+      { deaths: 500, name: "Troll Survivor" },
+      { deaths: 250, name: "Trap Collector" },
+      { deaths: 100, name: "Professional Loser" },
+      { deaths: 50, name: "Certified Target" },
+      { deaths: 10, name: "Beginner Victim" },
+      { deaths: 0, name: "Fresh Meat" }
+    ];
+
+    const achievementList = [
+      ["firstDeath", "First Death", "The formal handshake."],
+      ["deaths10", "10 Deaths", "Beginner Victim paperwork filed."],
+      ["deaths100", "100 Deaths", "Your keyboard knows fear."],
+      ["deaths500", "500 Deaths", "You live near the respawn point now."],
+      ["fakeVictory", "First Fake Victory", "You won. Spiritually."],
+      ["trustedSign", "Trusted A Sign", "Adorable."],
+      ["ignoredTrueSign", "Ignored A True Sign", "The one honest sign. Incredible."],
+      ["beat10", "Beat 10 Levels", "You have become suspiciously competent."],
+      ["beat50", "Beat 50 Levels", "The game is sweating pixels."],
+      ["beat100", "Beat 100 Levels", "This was not in the prophecy."],
+      ["secretLevel", "Found Secret Level", "A wall lied in the other direction."],
+      ["bossDefeated", "Defeated Troll Boss", "The boss filed a bug report."],
+      ["gravitySurvived", "Survived Gravity Reversal", "Up is a social construct."],
+      ["deaths1000", "Reached 1000 Deaths", "Legend."],
+      ["dailyWin", "Daily Challenge", "Today was personally rude."]
+    ];
+
+    const bossTypes = [
+      "Reverse Control Boss",
+      "Fake Exit Boss",
+      "Gravity Boss",
+      "Mimic Boss",
+      "Teleport Boss"
+    ];
+
+    const defaultSave = () => ({
+      version: 1,
+      currentLevel: 1,
+      currentLevelSeed: hashString("normal:1:new-victim"),
+      levelDeaths: 0,
+      totalDeaths: 0,
+      currentFailStreak: 0,
+      longestFailStreak: 0,
+      mostDeathsOnAnyLevel: 0,
+      levelsCompleted: 0,
+      completedDeathsTotal: 0,
+      playTimeMs: 0,
+      achievements: {},
+      heatSpots: [],
+      dailyRecords: {},
+      behaviorProfile: {
+        jumpRate: 0.42,
+        waitRatio: 0.12,
+        avgSpeed: 145,
+        riskRatio: 0.12,
+        signTrust: 0.5,
+        leftRightFlip: 0.12
+      },
+      stats: {
+        fakeVictories: 0,
+        secretLevels: 0,
+        bossWins: 0,
+        trueSignsIgnored: 0,
+        signsTrusted: 0
+      }
+    });
+
+    let save = loadSave();
+    let game = null;
+    let screen = "menu";
+    let audio = null;
+    let lastFrame = performance.now();
+    let playtimeSaveClock = 0;
+    let toastTimer = 0;
+    let lastGhost = null;
+    let pendingDailyDate = "";
+
+    const input = {
+      left: false,
+      right: false,
+      jump: false,
+      jumpPressed: false,
+      usingTouch: false
+    };
+
+    function loadSave() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return defaultSave();
+        const parsed = JSON.parse(raw);
+        return mergeDefaults(defaultSave(), parsed);
+      } catch {
+        return defaultSave();
+      }
+    }
+
+    function mergeDefaults(base, loaded) {
+      for (const key of Object.keys(base)) {
+        if (loaded[key] === undefined || loaded[key] === null) {
+          loaded[key] = base[key];
+        } else if (typeof base[key] === "object" && !Array.isArray(base[key])) {
+          loaded[key] = mergeDefaults(base[key], loaded[key]);
+        }
+      }
+      return loaded;
+    }
+
+    function saveGame() {
+      save.currentTitle = getTitle();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
+    }
+
+    function resetProgress() {
+      save = defaultSave();
+      lastGhost = null;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(save));
+      popupLayer.innerHTML = "";
+      showToast("Progress reset. The game pretends not to remember.");
+      showMainMenu();
+    }
+
+    function getTitle() {
+      return titles.find(title => save.totalDeaths >= title.deaths).name;
+    }
+
+    function unlock(id) {
+      if (save.achievements[id]) return false;
+      const achievement = achievementList.find(item => item[0] === id);
+      save.achievements[id] = Date.now();
+      saveGame();
+      showToast(`Achievement Unlocked: ${achievement ? achievement[1] : id}`);
+      playSound("achievement");
+      burst(W / 2 + (game ? game.cameraX : 0), H / 2, "#ffd166", 34);
+      return true;
+    }
+
+    function checkDeathAchievements() {
+      if (save.totalDeaths >= 1) unlock("firstDeath");
+      if (save.totalDeaths >= 10) unlock("deaths10");
+      if (save.totalDeaths >= 100) unlock("deaths100");
+      if (save.totalDeaths >= 500) unlock("deaths500");
+      if (save.totalDeaths >= 1000) unlock("deaths1000");
+    }
+
+    function checkLevelAchievements() {
+      if (save.levelsCompleted >= 10) unlock("beat10");
+      if (save.levelsCompleted >= 50) unlock("beat50");
+      if (save.levelsCompleted >= 100) unlock("beat100");
+    }
+
+    function showMainMenu() {
+      screen = "menu";
+      game = null;
+      popupLayer.innerHTML = "";
+      const canContinue = save.currentLevel > 1 || save.totalDeaths > 0 || save.levelDeaths > 0;
+      overlay.classList.remove("hidden");
+      overlay.innerHTML = `
+        <section class="panel">
+          <h1 class="title">THE GAME<br>THAT CHEATS</h1>
+          <p class="subtitle">A fair, honest platformer. This sentence has been reviewed by our legal department and rejected.</p>
+          <div class="grid">
+            <div class="statCard"><b>Level ${save.currentLevel}</b><span>Current misery coordinate</span></div>
+            <div class="statCard"><b>${save.totalDeaths}</b><span>Total deaths</span></div>
+            <div class="statCard"><b>${getTitle()}</b><span>Current title</span></div>
+          </div>
+          <div class="menuButtons">
+            <button data-action="start">Start Game</button>
+            <button data-action="continue" ${canContinue ? "" : "disabled"}>Continue</button>
+            <button data-action="daily">Daily Challenge</button>
+            <button data-action="stats">Statistics</button>
+            <button data-action="achievements">Achievements</button>
+            <button data-action="patch">Patch Notes</button>
+            <button data-action="credits">Credits</button>
+            <button data-action="reset">Reset Progress</button>
+          </div>
+          <p class="tiny">Desktop: A/D or arrows to move, Space/W/↑ to jump. Mobile: touch buttons. H toggles death heatmap. Esc returns here. Saves automatically after every death and win.</p>
+        </section>
+      `;
+      overlay.querySelector("[data-action='start']").onclick = () => {
+        if (save.levelsCompleted === 0 && save.totalDeaths === 0) {
+          save.currentLevel = 1;
+          save.levelDeaths = 0;
+          save.currentLevelSeed = hashString("normal:1:" + Date.now());
+          saveGame();
+        }
+        startNormalLevel(false);
+      };
+      overlay.querySelector("[data-action='continue']").onclick = () => startNormalLevel(false);
+      overlay.querySelector("[data-action='daily']").onclick = () => startDailyChallenge();
+      overlay.querySelector("[data-action='stats']").onclick = () => showStats();
+      overlay.querySelector("[data-action='achievements']").onclick = () => showAchievements();
+      overlay.querySelector("[data-action='patch']").onclick = () => showPatchNotes();
+      overlay.querySelector("[data-action='credits']").onclick = () => showCredits(true);
+      overlay.querySelector("[data-action='reset']").onclick = () => showResetConfirm();
+    }
+
+    function showStats() {
+      screen = "stats";
+      const unlocked = achievementList.filter(item => save.achievements[item[0]]).length;
+      const averageDeaths = save.levelsCompleted ? (save.completedDeathsTotal / save.levelsCompleted).toFixed(2) : "0.00";
+      overlay.classList.remove("hidden");
+      overlay.innerHTML = `
+        <section class="panel">
+          <h2 class="title" style="font-size:clamp(32px,5vw,58px)">Statistics</h2>
+          <p class="subtitle">The numbers are not judging you. I am, but gently.</p>
+          <div class="grid">
+            ${statCard("Levels completed", save.levelsCompleted)}
+            ${statCard("Total deaths", save.totalDeaths)}
+            ${statCard("Average deaths / level", averageDeaths)}
+            ${statCard("Play time", formatTime(save.playTimeMs))}
+            ${statCard("Longest fail streak", save.longestFailStreak)}
+            ${statCard("Most deaths on one level", save.mostDeathsOnAnyLevel)}
+            ${statCard("Achievements unlocked", `${unlocked}/${achievementList.length}`)}
+            ${statCard("Current title", getTitle())}
+          </div>
+          <div class="menuButtons">
+            <button data-action="back">Back</button>
+            <button data-action="achievements">Achievements</button>
+            <button data-action="heat">Explain Heatmap</button>
+          </div>
+        </section>
+      `;
+      overlay.querySelector("[data-action='back']").onclick = () => showMainMenu();
+      overlay.querySelector("[data-action='achievements']").onclick = () => showAchievements();
+      overlay.querySelector("[data-action='heat']").onclick = () => {
+        showToast("In-game red blobs mark your most popular disaster zones. Press H while playing.");
+      };
+    }
+
+    function statCard(label, value) {
+      return `<div class="statCard"><b>${escapeHTML(String(value))}</b><span>${escapeHTML(label)}</span></div>`;
+    }
+
+    function showAchievements() {
+      screen = "achievements";
+      overlay.classList.remove("hidden");
+      overlay.innerHTML = `
+        <section class="panel">
+          <h2 class="title" style="font-size:clamp(32px,5vw,58px)">Achievements</h2>
+          <p class="subtitle">Some awards are trophies. These are warning labels.</p>
+          <div class="grid">
+            ${achievementList.map(([id, name, desc]) => `
+              <div class="achievement ${save.achievements[id] ? "" : "locked"}">
+                <b>${save.achievements[id] ? "🏆 " : "🔒 "}${escapeHTML(name)}</b>
+                <span>${escapeHTML(save.achievements[id] ? desc : "Locked. Probably your fault.")}</span>
+              </div>
+            `).join("")}
+          </div>
+          <div class="menuButtons"><button data-action="back">Back</button></div>
+        </section>
+      `;
+      overlay.querySelector("[data-action='back']").onclick = () => showMainMenu();
+    }
+
+    function showPatchNotes() {
+      overlay.classList.remove("hidden");
+      overlay.innerHTML = `
+        <section class="panel">
+          <h2 class="title" style="font-size:clamp(30px,5vw,54px)">Patch Notes 9.9.9</h2>
+          <p class="subtitle">Fake update installed successfully. Cheating has been "disabled".</p>
+          <div class="statCard"><b>Balance</b><span>Spikes are now 14% more emotionally available.</span></div>
+          <div class="statCard"><b>Bug Fix</b><span>Fixed issue where players occasionally trusted the game and were correct.</span></div>
+          <div class="statCard"><b>Known Issue</b><span>The exit may develop personal boundaries.</span></div>
+          <div class="menuButtons"><button data-action="back">Back</button><button data-action="install">Install Again</button></div>
+        </section>
+      `;
+      overlay.querySelector("[data-action='back']").onclick = () => showMainMenu();
+      overlay.querySelector("[data-action='install']").onclick = () => {
+        showToast("Update failed: fairness.dll not found.");
+        playSound("troll");
+      };
+    }
+
+    function showCredits(fake = false) {
+      overlay.classList.remove("hidden");
+      overlay.innerHTML = `
+        <section class="panel">
+          <h2 class="title" style="font-size:clamp(30px,5vw,54px)">${fake ? "Fake Credits" : "Credits"}</h2>
+          <p class="subtitle">Directed by: the suspicious platform. QA: one spike with a clipboard.</p>
+          <div class="statCard"><b>You</b><span>Lead stunt performer, unpaid intern, frequent floor inspector.</span></div>
+          <div class="statCard"><b>The Game</b><span>Writer, director, liar, emotional support hazard.</span></div>
+          <div class="menuButtons"><button data-action="back">Back</button></div>
+        </section>
+      `;
+      overlay.querySelector("[data-action='back']").onclick = () => showMainMenu();
+    }
+
+    function showResetConfirm() {
+      overlay.classList.remove("hidden");
+      overlay.innerHTML = `
+        <section class="panel">
+          <h2 class="title" style="font-size:clamp(30px,5vw,54px)">Reset?</h2>
+          <p class="subtitle">This will erase progress. The game will pretend to be sad.</p>
+          <div class="menuButtons">
+            <button data-action="cancel">Cancel</button>
+            <button data-action="reset">Reset Progress</button>
+          </div>
+        </section>
+      `;
+      overlay.querySelector("[data-action='cancel']").onclick = () => showMainMenu();
+      overlay.querySelector("[data-action='reset']").onclick = () => resetProgress();
+    }
+
+    function hideOverlay() {
+      overlay.classList.add("hidden");
+      overlay.innerHTML = "";
+    }
+
+    function showToast(message, duration = 1800) {
+      toastEl.textContent = message;
+      toastEl.classList.add("show");
+      toastTimer = duration / 1000;
+    }
+
+    function fakePopup(title, body, tricky = false) {
+      const popup = document.createElement("div");
+      popup.className = "fakePopup";
+      popup.style.left = `${8 + Math.random() * 48}%`;
+      popup.style.top = `${18 + Math.random() * 42}%`;
+      popup.innerHTML = `
+        <header>${escapeHTML(title)}</header>
+        <p>${escapeHTML(body)}</p>
+        <button>OK</button>
+      `;
+      const button = popup.querySelector("button");
+      let dodges = 0;
+      button.onclick = () => popup.remove();
+      if (tricky) {
+        button.onmouseenter = () => {
+          if (dodges++ < 3) {
+            popup.style.left = `${8 + Math.random() * 62}%`;
+            popup.style.top = `${15 + Math.random() * 50}%`;
+            playSound("troll");
+          }
+        };
+      }
+      popupLayer.appendChild(popup);
+      setTimeout(() => popup.remove(), 4200);
+    }
+
+    function fakeFullScreen(title, lines, duration = 1200, onDone = null) {
+      const previous = overlay.innerHTML;
+      const wasHidden = overlay.classList.contains("hidden");
+      overlay.classList.remove("hidden");
+      overlay.innerHTML = `
+        <section class="panel" style="text-align:center">
+          <h2 class="title" style="font-size:clamp(34px,7vw,72px)">${escapeHTML(title)}</h2>
+          <p class="subtitle">${lines.map(escapeHTML).join("<br>")}</p>
+        </section>
+      `;
+      if (game) game.frozenUntil = Math.max(game.frozenUntil, game.time + duration / 1000);
+      setTimeout(() => {
+        if (wasHidden) {
+          hideOverlay();
+        } else {
+          overlay.innerHTML = previous;
+        }
+        if (onDone) onDone();
+      }, duration);
+    }
+
+    function escapeHTML(text) {
+      return text.replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+      })[char]);
+    }
+
+    function formatTime(ms) {
+      const seconds = Math.floor(ms / 1000);
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      return h ? `${h}h ${m}m ${s}s` : `${m}m ${s}s`;
+    }
+
+    function startAudio() {
+      if (audio) return;
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      audio = new AudioContext();
+    }
+
+    function playSound(kind) {
+      if (!audio) return;
+      const now = audio.currentTime;
+      const master = audio.createGain();
+      master.gain.value = 0.05;
+      master.connect(audio.destination);
+
+      const oscillator = audio.createOscillator();
+      const gain = audio.createGain();
+      oscillator.connect(gain);
+      gain.connect(master);
+      oscillator.type = kind === "death" ? "sawtooth" : kind === "achievement" ? "triangle" : "square";
+      const patterns = {
+        jump: [260, 420, 0.12],
+        death: [180, 42, 0.32],
+        win: [440, 880, 0.42],
+        achievement: [660, 990, 0.36],
+        troll: [120, 520, 0.22]
+      };
+      const [from, to, length] = patterns[kind] || patterns.troll;
+      oscillator.frequency.setValueAtTime(from, now);
+      oscillator.frequency.exponentialRampToValueAtTime(Math.max(1, to), now + length);
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.exponentialRampToValueAtTime(0.7, now + 0.018);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + length);
+      oscillator.start(now);
+      oscillator.stop(now + length + 0.02);
+    }
+
+    function hashString(text) {
+      let hash = 2166136261;
+      for (let i = 0; i < text.length; i++) {
+        hash ^= text.charCodeAt(i);
+        hash = Math.imul(hash, 16777619);
+      }
+      return hash >>> 0;
+    }
+
+    function mulberry32(seed) {
+      let value = seed >>> 0;
+      return () => {
+        value += 0x6D2B79F5;
+        let t = value;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+
+    function randRange(rng, min, max) {
+      return min + rng() * (max - min);
+    }
+
+    function randInt(rng, min, max) {
+      return Math.floor(randRange(rng, min, max + 1));
+    }
+
+    function choose(rng, list) {
+      return list[Math.floor(rng() * list.length)];
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function rectsOverlap(a, b) {
+      return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    }
+
+    function pointDistance(ax, ay, bx, by) {
+      const dx = ax - bx;
+      const dy = ay - by;
+      return Math.hypot(dx, dy);
+    }
+
+    function getDailyDate() {
+      const date = new Date();
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function startNormalLevel(retry, options = {}) {
+      if (!save.currentLevelSeed) save.currentLevelSeed = hashString("normal:" + save.currentLevel);
+      startLevel({
+        levelNumber: save.currentLevel,
+        seed: save.currentLevelSeed,
+        mode: "normal",
+        retry,
+        checkpointIndex: options.checkpointIndex || 0,
+        ghost: options.ghost || lastGhost
+      });
+    }
+
+    function startDailyChallenge() {
+      const day = getDailyDate();
+      pendingDailyDate = day;
+      const dailyLevel = 12 + (hashString(day) % 39);
+      startLevel({
+        levelNumber: dailyLevel,
+        seed: hashString("daily:" + day),
+        mode: "daily",
+        retry: false,
+        dailyDate: day,
+        checkpointIndex: 0,
+        ghost: null
+      });
+      showToast(`Daily Challenge ${day}: one attempt? Absolutely not, that's too honest.`);
+    }
+
+    function startSecretLevel(sourceX = 0) {
+      const secretLevel = Math.max(3, save.currentLevel + 7);
+      unlock("secretLevel");
+      save.stats.secretLevels += 1;
+      saveGame();
+      startLevel({
+        levelNumber: secretLevel,
+        seed: hashString(`secret:${save.currentLevel}:${save.totalDeaths}:${sourceX}`),
+        mode: "secret",
+        retry: false,
+        checkpointIndex: 0,
+        ghost: null
+      });
+      showToast("Secret Level found. The wall was lying backwards.");
+    }
+
+    function startLevel(config) {
+      startAudio();
+      hideOverlay();
+      screen = "game";
+      popupLayer.innerHTML = "";
+      const rng = mulberry32(config.seed);
+      const level = buildLevel(config.levelNumber, config.mode, rng, config.seed, config.dailyDate);
+      game = {
+        ...level,
+        mode: config.mode,
+        seed: config.seed,
+        dailyDate: config.dailyDate || "",
+        rng,
+        time: 0,
+        cameraX: 0,
+        shake: 0,
+        gravityDir: 1,
+        gravityUntil: 0,
+        reverseUntil: 0,
+        frozenUntil: 0,
+        checkpointIndex: config.checkpointIndex || 0,
+        checkpointMessageShown: false,
+        showHeatmap: save.levelDeaths >= 3,
+        particles: [],
+        floatingTexts: [],
+        trapsTriggered: {},
+        bossMeter: 0,
+        exitMercy: 0,
+        lastSafePlatform: 0,
+        mimic: null,
+        replayGhost: config.ghost,
+        runSamples: [],
+        behavior: {
+          jumps: 0,
+          jumpAttempts: 0,
+          frames: 0,
+          waitFrames: 0,
+          fastFrames: 0,
+          riskFrames: 0,
+          leftFrames: 0,
+          rightFrames: 0,
+          signReads: 0,
+          signTrusts: 0,
+          signIgnores: 0,
+          distance: 0,
+          previousX: 0
+        }
+      };
+
+      if (game.checkpointIndex) {
+        const checkpoint = game.checkpoints.find(item => item.index === game.checkpointIndex && !item.fake);
+        if (checkpoint) {
+          game.spawnX = checkpoint.x + 12;
+          game.spawnY = checkpoint.y - PLAYER.h - 2;
+        }
+      }
+
+      game.player = {
+        x: game.spawnX,
+        y: game.spawnY,
+        w: PLAYER.w,
+        h: PLAYER.h,
+        vx: 0,
+        vy: 0,
+        onGround: false,
+        coyote: 0,
+        jumpBuffer: 0,
+        doubleJumpUsed: false,
+        facing: 1,
+        alive: true,
+        spawnGrace: 0.8
+      };
+      game.behavior.previousX = game.player.x;
+
+      const intro = introMessage(game);
+      showToast(intro, game.bossType ? 2600 : 1800);
+      if (game.levelNumber === 3 && game.mode === "normal") {
+        setTimeout(() => fakeFullScreen("FINAL LEVEL", ["You made it.", "Ignore the level counter.", "It's shy."], 1200), 600);
+      }
+    }
+
+    function introMessage(level) {
+      if (level.mode === "daily") return "Daily Challenge: today's betrayal is locally sourced.";
+      if (level.mode === "secret") return "SECRET LEVEL: The game did not consent to this.";
+      if (level.bossType) return `${level.bossType}. Boss health: emotionally unstable.`;
+      if (level.rareEasy) return "Rare Easy Level! That's not suspicious at all.";
+      return choose(level.rng, [
+        "Cheating disabled. Promise.",
+        "Trust the signs. Or don't. I love both.",
+        "Auto-save enabled. Auto-mercy not found.",
+        "The exit is definitely at the end.",
+        "New level generated from your bad habits."
+      ]);
+    }
+
+    function buildLevel(levelNumber, mode, rng, seed, dailyDate = "") {
+      const profile = save.behaviorProfile;
+      const tutorialLevel = mode === "normal" && levelNumber <= 5;
+      const difficulty = mode === "daily"
+        ? 0.75
+        : tutorialLevel
+          ? clamp(levelNumber / 12, 0.08, 0.42)
+          : clamp((levelNumber - 4) / 42, 0.08, 2.2);
+      const isBoss = mode === "normal" && !tutorialLevel && levelNumber % 10 === 0;
+      const rareEasy = !isBoss && !tutorialLevel && mode === "normal" && rng() < 0.055;
+      const bossType = isBoss ? bossTypes[((levelNumber / 10) - 1) % bossTypes.length] : "";
+      const lengthBoost = isBoss ? 760 : rareEasy ? -520 : 0;
+      const tutorialWidths = [0, 1580, 1780, 1900, 2000, 2140];
+      const width = tutorialLevel
+        ? tutorialWidths[levelNumber]
+        : Math.floor(2000 + Math.min(levelNumber, 90) * 24 + difficulty * 190 + lengthBoost);
+
+      const level = {
+        levelNumber,
+        mode,
+        dailyDate,
+        width,
+        height: H,
+        difficulty,
+        tutorialLevel,
+        rareEasy,
+        bossType,
+        spawnX: 68,
+        spawnY: 392,
+        normalSpawnX: 68,
+        normalSpawnY: 392,
+        doubleJumpMode: pickDoubleJumpMode(levelNumber, mode, rng),
+        oppositeStart: null,
+        platforms: [],
+        hazards: [],
+        traps: [],
+        signs: [],
+        checkpoints: [],
+        exits: [],
+        buttons: [],
+        arrows: [],
+        fakeWalls: [],
+        path: [],
+        skyHue: randInt(rng, 185, 224),
+        accent: choose(rng, COLORS),
+        trollDNA: analyzeProfile(profile)
+      };
+
+      generatePath(level, rng);
+      if (tutorialLevel) {
+        placeTutorialObjects(level, rng);
+      } else {
+        placeCoreObjects(level, rng);
+        placeAdaptiveTrolls(level, rng);
+        if (bossType) placeBossTrolls(level, rng, bossType);
+        if (rareEasy) makeRareEasy(level, rng);
+      }
+      return level;
+    }
+
+    function pickDoubleJumpMode(levelNumber, mode, rng) {
+      if (mode === "normal" && levelNumber === 1) return "steady";
+      if (mode === "normal" && levelNumber === 2) return "eager";
+      if (mode === "normal" && levelNumber === 4) return "twitchy";
+      return choose(rng, ["steady", "steady", "eager", "twitchy"]);
+    }
+
+    function analyzeProfile(profile) {
+      return {
+        jumpy: profile.jumpRate > 0.58,
+        grounded: profile.jumpRate < 0.26,
+        speedy: profile.avgSpeed > 175,
+        careful: profile.waitRatio > 0.22,
+        risky: profile.riskRatio > 0.18,
+        signBeliever: profile.signTrust > 0.58,
+        signHater: profile.signTrust < 0.34,
+        zigzag: profile.leftRightFlip > 0.18
+      };
+    }
+
+    function generatePath(level, rng) {
+      if (level.tutorialLevel) {
+        generateTutorialPath(level);
+        return;
+      }
+
+      const diff = level.difficulty;
+      let x = 28;
+      let y = 430;
+      let w = 220;
+      addPlatform(level, { x, y, w, h: 30, type: "start", color: "#34f5c5" }, true);
+      level.spawnX = x + 42;
+      level.spawnY = y - PLAYER.h - 2;
+
+      let steps = 0;
+      while (x + w < level.width - 360) {
+        const previousX = x;
+        const previousY = y;
+        const previousW = w;
+        const gapBase = level.rareEasy ? randRange(rng, 54, 105) : randRange(rng, 76, 146 + diff * 18);
+        const forcedJumpGap = level.trollDNA.grounded && steps % 4 === 2 ? 34 : 0;
+        const gap = clamp(gapBase + forcedJumpGap, 54, 178);
+        w = randRange(rng, level.rareEasy ? 135 : 92, level.rareEasy ? 230 : 178);
+        const deltaY = randRange(rng, -70 - diff * 4, 72);
+        y = clamp(previousY + deltaY, 238, 438);
+        if (Math.abs(y - previousY) > 78) y = previousY + Math.sign(y - previousY) * 78;
+        x = previousX + previousW + gap;
+
+        const typeRoll = rng();
+        let type = "normal";
+        if (!level.rareEasy && typeRoll < 0.12 + diff * 0.035) type = "disappear";
+        else if (!level.rareEasy && typeRoll < 0.20 + diff * 0.04) type = "moving";
+        const platform = addPlatform(level, {
+          x,
+          y,
+          w,
+          h: 26,
+          type,
+          color: choose(rng, ["#fff06d", "#34f5c5", "#8ef6ff", "#ffa3d1", "#b18cff"]),
+          baseX: x,
+          baseY: y,
+          phase: rng() * Math.PI * 2,
+          amplitude: type === "moving" ? randRange(rng, 24, 58) : 0,
+          speed: type === "moving" ? randRange(rng, 0.9, 1.45 + diff * 0.15) : 0,
+          vanishTimer: 0,
+          vanished: false
+        }, true);
+        steps++;
+      }
+
+      const finalY = clamp(y + randRange(rng, -50, 35), 310, 430);
+      addPlatform(level, {
+        x: level.width - 292,
+        y: finalY,
+        w: 250,
+        h: 30,
+        type: "finish",
+        color: "#ffd166"
+      }, true);
+    }
+
+    function generateTutorialPath(level) {
+      const layouts = {
+        1: [
+          [28, 430, 250, "start"],
+          [350, 420, 260, "normal"],
+          [688, 410, 270, "normal"],
+          [1028, 405, 260, "normal"],
+          [1288, 405, 250, "finish"]
+        ],
+        2: [
+          [28, 430, 250, "start"],
+          [350, 420, 240, "normal"],
+          [710, 398, 260, "normal"],
+          [1078, 410, 260, "normal"],
+          [1488, 402, 250, "finish"]
+        ],
+        3: [
+          [28, 430, 250, "start"],
+          [350, 420, 250, "normal"],
+          [715, 410, 230, "disappear"],
+          [1060, 398, 260, "normal"],
+          [1440, 410, 260, "moving"],
+          [1608, 405, 250, "finish"]
+        ],
+        4: [
+          [28, 430, 260, "start"],
+          [368, 420, 260, "normal"],
+          [720, 408, 260, "normal"],
+          [1088, 412, 260, "normal"],
+          [1462, 404, 260, "normal"],
+          [1708, 404, 250, "finish"]
+        ],
+        5: [
+          [28, 430, 250, "start"],
+          [344, 420, 240, "normal"],
+          [690, 412, 250, "normal"],
+          [1040, 405, 250, "normal"],
+          [1390, 398, 270, "normal"],
+          [1848, 405, 250, "finish"]
+        ]
+      };
+
+      for (const [x, y, w, type] of layouts[level.levelNumber]) {
+        addPlatform(level, {
+          x,
+          y,
+          w,
+          h: type === "start" || type === "finish" ? 30 : 26,
+          type,
+          color: type === "start" ? "#34f5c5" : type === "finish" ? "#ffd166" : type === "disappear" ? "#ffdd75" : type === "moving" ? "#8ef6ff" : "#fff06d",
+          baseX: x,
+          baseY: y,
+          phase: 0,
+          amplitude: type === "moving" ? 28 : 0,
+          speed: type === "moving" ? 0.8 : 0,
+          vanishTimer: 0,
+          vanishDelay: type === "disappear" ? 1.35 : 0.72,
+          vanished: false
+        }, true);
+      }
+
+      const start = level.path[0];
+      level.spawnX = start.x + 42;
+      level.spawnY = start.y - PLAYER.h - 2;
+      level.normalSpawnX = level.spawnX;
+      level.normalSpawnY = level.spawnY;
+    }
+
+    function addPlatform(level, platform, main = false) {
+      const item = {
+        solid: true,
+        alpha: 1,
+        main,
+        id: level.platforms.length,
+        ...platform
+      };
+      level.platforms.push(item);
+      if (main && !level.path.includes(item)) level.path.push(item);
+      return item;
+    }
+
+    function placeCoreObjects(level, rng) {
+      const mid = level.path[Math.floor(level.path.length * 0.48)];
+      const late = level.path[Math.floor(level.path.length * 0.72)];
+      if (mid) {
+        level.checkpoints.push({
+          x: mid.x + mid.w * 0.52,
+          y: mid.y - 42,
+          w: 22,
+          h: 42,
+          fake: rng() < 0.68,
+          index: 1,
+          used: false
+        });
+      }
+      if (late && level.bossType) {
+        level.checkpoints.push({
+          x: late.x + late.w * 0.35,
+          y: late.y - 42,
+          w: 22,
+          h: 42,
+          fake: false,
+          index: 2,
+          used: false
+        });
+      }
+
+      const final = level.path[level.path.length - 1];
+      level.exits.push({
+        x: final.x + final.w - 72,
+        y: final.y - 68,
+        w: 42,
+        h: 68,
+        fake: false,
+        moving: (level.levelNumber > 8 && level.trollDNA.speedy) || level.bossType === "Fake Exit Boss",
+        moveCount: 0,
+        baseX: final.x + final.w - 72,
+        label: "EXIT"
+      });
+
+      const signPlatform = level.path[Math.min(2, level.path.length - 2)];
+      if (signPlatform) {
+        const lie = level.trollDNA.signBeliever || rng() < 0.54;
+        level.signs.push({
+          x: signPlatform.x + 18,
+          y: signPlatform.y - 58,
+          w: 38,
+          h: 46,
+          text: lie ? "SAFE →" : "SPIKES →",
+          truth: !lie,
+          recommendation: lie ? "right" : "wait",
+          read: false,
+          judged: false
+        });
+      }
+
+      const trueSignPlatform = level.path[Math.floor(level.path.length * 0.62)];
+      if (trueSignPlatform) {
+        level.signs.push({
+          x: trueSignPlatform.x + trueSignPlatform.w - 60,
+          y: trueSignPlatform.y - 58,
+          w: 38,
+          h: 46,
+          text: "JUMP. REALLY.",
+          truth: true,
+          recommendation: "jump",
+          read: false,
+          judged: false
+        });
+      }
+
+      if (level.mode === "normal" && level.levelNumber > 8 && rng() < 0.18) {
+        const secret = level.path[Math.floor(level.path.length * randRange(rng, 0.35, 0.78))];
+        level.fakeWalls.push({
+          x: secret.x + secret.w - 8,
+          y: secret.y - 74,
+          w: 30,
+          h: 74,
+          secret: true,
+          touched: false
+        });
+      }
+
+      if (level.mode === "normal" && level.levelNumber > 5 && !level.bossType && rng() < clamp(0.12 + level.difficulty * 0.05, 0.12, 0.26)) {
+        addOppositeStart(level, rng, false);
+      }
+    }
+
+    function placeTutorialObjects(level, rng) {
+      const final = level.path[level.path.length - 1];
+      const addRealExit = () => {
+        level.exits.push({
+          x: final.x + final.w - 68,
+          y: final.y - 68,
+          w: 42,
+          h: 68,
+          fake: false,
+          moving: false,
+          moveCount: 0,
+          baseX: final.x + final.w - 68,
+          label: "EXIT"
+        });
+      };
+
+      if (level.levelNumber === 1) {
+        const checkpointPlatform = level.path[level.path.length - 2];
+        level.signs.push(tutorialSign(level.path[0], "MOVE ->", true, "right", 34));
+        level.signs.push(tutorialSign(level.path[1], "EASY JUMPS", true, "jump", 36));
+        level.signs.push(tutorialSign(checkpointPlatform, "REAL CHECKPOINT", true, "right", 26));
+        level.checkpoints.push({
+          x: checkpointPlatform.x + checkpointPlatform.w * 0.42,
+          y: checkpointPlatform.y - 42,
+          w: 22,
+          h: 42,
+          fake: false,
+          index: 1,
+          used: false
+        });
+        level.exits.push({
+          x: final.x + 34,
+          y: final.y - 64,
+          w: 42,
+          h: 64,
+          fake: true,
+          moving: false,
+          moveCount: 0,
+          baseX: final.x + 34,
+          label: "EXIT?"
+        });
+        addRealExit();
+        return;
+      }
+
+      if (level.levelNumber === 2) {
+        level.signs.push(tutorialSign(level.path[1], "DOUBLE JUMP", true, "jump", 22));
+        level.signs.push(tutorialSign(level.path[2], "IT SOMETIMES HELPS EARLY", true, "right", 14));
+        addRealCheckpoint(level, level.path[2], 1);
+        addRealExit();
+        return;
+      }
+
+      if (level.levelNumber === 3) {
+        level.signs.push(tutorialSign(level.path[1], "YELLOW BLOCKS QUIT", true, "right", 16));
+        level.signs.push(tutorialSign(level.path[3], "MOVING BLOCK: RUDE ELEVATOR", true, "right", 8));
+        addRealCheckpoint(level, level.path[3], 1);
+        addRealExit();
+        return;
+      }
+
+      if (level.levelNumber === 4) {
+        addOppositeStart(level, rng, true);
+        level.signs.push(tutorialSign(level.path[1], "OPPOSITE DAY COMPLETE", true, "right", 8));
+        addRealCheckpoint(level, level.path[2], 1);
+        addRealExit();
+        return;
+      }
+
+      if (level.levelNumber === 5) {
+        level.signs.push(tutorialSign(level.path[1], "SPIKES HURT. SHOCKING.", true, "right", 8));
+        addRealCheckpoint(level, level.path[2], 1);
+        const spikePlatform = level.path[3];
+        level.hazards.push({
+          x: spikePlatform.x + spikePlatform.w * 0.64,
+          y: spikePlatform.y - 20,
+          w: 42,
+          h: 20,
+          type: "spike",
+          active: true,
+          revealed: true,
+          color: "#ff315a",
+          vx: 0,
+          baseX: spikePlatform.x + spikePlatform.w * 0.64
+        });
+        level.signs.push({
+          x: spikePlatform.x + 22,
+          y: spikePlatform.y - 58,
+          w: 38,
+          h: 46,
+          text: "SAFE?",
+          truth: true,
+          recommendation: "right",
+          read: false,
+          judged: false
+        });
+        addRealExit();
+      }
+    }
+
+    function tutorialSign(platform, text, truth, recommendation, offsetX) {
+      return {
+        x: platform.x + offsetX,
+        y: platform.y - 58,
+        w: 38,
+        h: 46,
+        text,
+        truth,
+        recommendation,
+        read: false,
+        judged: false
+      };
+    }
+
+    function addRealCheckpoint(level, platform, index) {
+      level.checkpoints.push({
+        x: platform.x + platform.w * 0.48,
+        y: platform.y - 42,
+        w: 22,
+        h: 42,
+        fake: false,
+        index,
+        used: false
+      });
+    }
+
+    function addOppositeStart(level, rng, tutorial) {
+      const normalSpawnX = level.normalSpawnX || level.spawnX;
+      const normalSpawnY = level.normalSpawnY || level.spawnY;
+      const startX = level.width - (tutorial ? 360 : 390);
+      const startY = tutorial ? 188 : randRange(rng, 168, 218);
+      const platform = addPlatform(level, {
+        x: startX,
+        y: startY,
+        w: 238,
+        h: 30,
+        type: "oppositeStart",
+        color: "#ff8ad8",
+        baseX: startX,
+        baseY: startY
+      }, false);
+
+      level.oppositeStart = { platformId: platform.id, normalSpawnX, normalSpawnY, tutorial };
+      level.spawnX = platform.x + platform.w * 0.58;
+      level.spawnY = platform.y - PLAYER.h - 2;
+      level.signs.push({
+        x: platform.x + 72,
+        y: platform.y - 58,
+        w: 38,
+        h: 46,
+        text: tutorial ? "START ->" : "FREE START ->",
+        truth: false,
+        recommendation: "right",
+        read: false,
+        judged: false
+      });
+      level.arrows.push({
+        x: platform.x + platform.w - 60,
+        y: platform.y - 76,
+        dir: 1,
+        wrong: true
+      });
+      level.traps.push({
+        x: platform.x + platform.w - 82,
+        y: platform.y - 84,
+        w: 106,
+        h: 120,
+        type: "oppositeForward",
+        platformId: platform.id,
+        normalSpawnX,
+        normalSpawnY,
+        triggered: false
+      });
+      level.traps.push({
+        x: platform.x - 36,
+        y: platform.y - 78,
+        w: 64,
+        h: 118,
+        type: "oppositeLeft",
+        platformId: platform.id,
+        normalSpawnX,
+        normalSpawnY,
+        triggered: false
+      });
+    }
+
+    function placeAdaptiveTrolls(level, rng) {
+      const diff = level.difficulty;
+      const dna = level.trollDNA;
+      const path = level.path.slice(1, -1);
+      const hazardCount = level.rareEasy ? 2 : Math.floor(3 + diff * 3 + Math.max(0, level.levelNumber - 6) / 18);
+
+      for (let i = 0; i < hazardCount && path.length; i++) {
+        const platform = path[randInt(rng, 0, path.length - 1)];
+        const side = rng() < 0.5 ? 0.2 : 0.68;
+        const w = randRange(rng, 22, 44);
+        const invisibleAllowed = level.levelNumber > 8 && (rng() < 0.16 || (dna.careful && level.levelNumber > 10));
+        level.hazards.push({
+          x: platform.x + platform.w * side,
+          y: platform.y - 20,
+          w,
+          h: 20,
+          type: invisibleAllowed ? "invisible" : "spike",
+          active: true,
+          revealed: false,
+          color: "#ff315a",
+          vx: 0,
+          baseX: platform.x + platform.w * side
+        });
+      }
+
+      for (let i = 2; i < path.length; i += randInt(rng, 3, 5)) {
+        const platform = path[i];
+        const trapChance = clamp(0.22 + diff * 0.15, 0.22, 0.55);
+        if (rng() < trapChance && !level.rareEasy) {
+          level.traps.push({
+            x: platform.x - 34,
+            y: 0,
+            w: platform.w + 68,
+            h: H,
+            type: chooseTrapForProfile(level, rng),
+            platformId: platform.id,
+            triggered: false
+          });
+        }
+      }
+
+      if (dna.jumpy && level.levelNumber > 8) {
+        path.filter((_, index) => index % 3 === 1).slice(0, 4).forEach(platform => {
+          level.hazards.push({
+            x: platform.x + 18,
+            y: Math.max(46, platform.y - 116),
+            w: platform.w - 36,
+            h: 16,
+            type: "antiJump",
+            active: true,
+            revealed: true,
+            color: "#ff8ad8",
+            vx: 0,
+            baseX: platform.x + 18
+          });
+        });
+      }
+
+      if (dna.grounded && level.levelNumber > 6) {
+        path.filter((_, index) => index % 4 === 2).slice(0, 2).forEach(platform => {
+          level.traps.push({
+            x: platform.x + 8,
+            y: platform.y - 90,
+            w: platform.w - 16,
+            h: 90,
+            type: "forcedJump",
+            triggered: false
+          });
+        });
+      }
+
+      if (dna.speedy && level.levelNumber > 7) {
+        path.filter((_, index) => index % 4 === 1).slice(0, 3).forEach(platform => {
+          level.traps.push({
+            x: platform.x - 30,
+            y: platform.y - 95,
+            w: platform.w + 60,
+            h: 110,
+            type: "speedTrap",
+            platformId: platform.id,
+            triggered: false
+          });
+        });
+      }
+
+      if (dna.careful && level.levelNumber > 8) {
+        for (let i = 1; i < path.length; i += 5) {
+          const platform = path[i];
+          addPlatform(level, {
+            x: platform.x + randRange(rng, -25, 35),
+            y: platform.y + randRange(rng, 56, 92),
+            w: randRange(rng, 100, 160),
+            h: 24,
+            type: "fake",
+            color: "#9fffcf"
+          }, false);
+          level.signs.push({
+            x: platform.x + 16,
+            y: platform.y - 56,
+            w: 38,
+            h: 46,
+            text: "CALM PATH ↓",
+            truth: false,
+            recommendation: "down",
+            read: false,
+            judged: false
+          });
+        }
+      }
+
+      if (level.levelNumber > 5 || level.mode !== "normal") {
+        const fakeCount = level.bossType === "Fake Exit Boss" ? 4 : (rng() < 0.58 ? 1 : 0);
+        for (let i = 0; i < fakeCount; i++) {
+          const platform = path[randInt(rng, 1, Math.max(1, path.length - 2))];
+          level.exits.push({
+            x: platform.x + randRange(rng, 16, platform.w - 58),
+            y: platform.y - 64,
+            w: 42,
+            h: 64,
+            fake: true,
+            moving: false,
+            moveCount: 0,
+            baseX: platform.x,
+            label: rng() < 0.5 ? "EXIT" : "REAL EXIT"
+          });
+        }
+      }
+
+      if (!level.rareEasy && rng() < clamp(0.26 + diff * 0.08, 0.26, 0.42)) {
+        const buttonPlatform = path[randInt(rng, 0, path.length - 1)];
+        level.buttons.push({
+          x: buttonPlatform.x + buttonPlatform.w * 0.45,
+          y: buttonPlatform.y - 13,
+          w: 34,
+          h: 13,
+          pressed: false,
+          label: choose(rng, ["DO NOT", "FIX GAME", "FREE WIN", "TRUST"])
+        });
+      }
+
+      for (let i = level.levelNumber > 8 ? 1 : 3; i < path.length; i += 5) {
+        const platform = path[i];
+        level.arrows.push({
+          x: platform.x + platform.w / 2,
+          y: platform.y - 78,
+          dir: rng() < 0.5 ? -1 : 1,
+          wrong: true
+        });
+      }
+    }
+
+    function chooseTrapForProfile(level, rng) {
+      const dna = level.trollDNA;
+      const weighted = [];
+      const add = (type, weight) => {
+        for (let i = 0; i < weight; i++) weighted.push(type);
+      };
+      add("fakeLoading", 1);
+      add("bugPopup", 2);
+      add("teleport", 2);
+      add("reverse", dna.zigzag ? 4 : 2);
+      add("gravity", dna.jumpy ? 3 : 1);
+      add("obstacleShuffle", 2);
+      add("fakeAchievement", 2);
+      add("fakeCrash", level.levelNumber > 4 ? 1 : 0);
+      add("fakeFinal", level.levelNumber > 6 ? 1 : 0);
+      return choose(rng, weighted);
+    }
+
+    function placeBossTrolls(level, rng, bossType) {
+      if (bossType === "Reverse Control Boss") {
+        level.signs.push({
+          x: level.path[1].x + 15,
+          y: level.path[1].y - 58,
+          w: 38,
+          h: 46,
+          text: "CONTROLS NORMAL",
+          truth: false,
+          recommendation: "right",
+          read: false,
+          judged: false
+        });
+        level.path.slice(1, -1).forEach((platform, index) => {
+          if (index % 2 === 0) {
+            level.traps.push({ x: platform.x - 18, y: 0, w: platform.w + 36, h: H, type: "reverse", triggered: false, boss: true });
+          }
+        });
+      }
+
+      if (bossType === "Fake Exit Boss") {
+        level.exits.forEach(exit => {
+          if (!exit.fake) exit.label = "PROBABLY EXIT";
+        });
+        level.signs.push({
+          x: level.path[Math.floor(level.path.length * 0.55)].x,
+          y: level.path[Math.floor(level.path.length * 0.55)].y - 58,
+          w: 38,
+          h: 46,
+          text: "THIRD EXIT LIES",
+          truth: false,
+          recommendation: "right",
+          read: false,
+          judged: false
+        });
+      }
+
+      if (bossType === "Gravity Boss") {
+        const midPlatforms = level.path.slice(2, -2);
+        midPlatforms.forEach((platform, index) => {
+          if (index % 3 === 0) {
+            addPlatform(level, {
+              x: platform.x + 8,
+              y: 66 + (index % 2) * 18,
+              w: platform.w + 20,
+              h: 24,
+              type: "ceiling",
+              color: "#b18cff"
+            }, false);
+            level.traps.push({ x: platform.x - 24, y: 0, w: platform.w + 48, h: H, type: "gravity", triggered: false, boss: true });
+          }
+        });
+      }
+
+      if (bossType === "Mimic Boss") {
+        level.traps.push({
+          x: level.path[2].x,
+          y: 0,
+          w: level.width - level.path[2].x - 380,
+          h: H,
+          type: "mimic",
+          triggered: false,
+          boss: true
+        });
+      }
+
+      if (bossType === "Teleport Boss") {
+        level.path.slice(2, -1).forEach((platform, index) => {
+          if (index % 3 === 1) {
+            level.traps.push({ x: platform.x + platform.w * 0.35, y: platform.y - 70, w: 52, h: 70, type: "teleport", triggered: false, boss: true });
+          }
+        });
+      }
+    }
+
+    function makeRareEasy(level, rng) {
+      level.hazards = level.hazards.slice(0, 1);
+      level.traps = level.traps.filter(trap => trap.type === "fakeAchievement").slice(0, 1);
+      const p = level.path[Math.floor(level.path.length * 0.45)];
+      level.signs.push({
+        x: p.x + 18,
+        y: p.y - 56,
+        w: 38,
+        h: 46,
+        text: "ACTUALLY EASY",
+        truth: true,
+        recommendation: "right",
+        read: false,
+        judged: false
+      });
+    }
+
+    function update(dt) {
+      if (screen !== "game" || !game) return;
+      dt = Math.min(dt, MAX_DT);
+      game.time += dt;
+      save.playTimeMs += dt * 1000;
+      playtimeSaveClock += dt;
+      if (playtimeSaveClock > 10) {
+        playtimeSaveClock = 0;
+        saveGame();
+      }
+
+      if (toastTimer > 0) {
+        toastTimer -= dt;
+        if (toastTimer <= 0) toastEl.classList.remove("show");
+      }
+
+      if (game.frozenUntil > game.time) {
+        updateParticles(dt);
+        updateCamera(dt);
+        return;
+      }
+
+      if (game.gravityUntil && game.time > game.gravityUntil) {
+        game.gravityDir = 1;
+        game.gravityUntil = 0;
+        showToast("Gravity apologized and left.");
+      }
+
+      updatePlatforms(dt);
+      updatePlayer(dt);
+      updateSigns();
+      updateTrolls(dt);
+      updateParticles(dt);
+      updateCamera(dt);
+      updateHud();
+      input.jumpPressed = false;
+    }
+
+    function updatePlatforms(dt) {
+      for (const platform of game.platforms) {
+        platform.dx = 0;
+        platform.dy = 0;
+        if (platform.type === "moving") {
+          const oldX = platform.x;
+          platform.x = platform.baseX + Math.sin(game.time * platform.speed + platform.phase) * platform.amplitude;
+          platform.dx = platform.x - oldX;
+        }
+        if (platform.type === "disappear") {
+          if (platform.vanishTimer > 0) {
+            platform.vanishTimer += dt;
+            const vanishDelay = platform.vanishDelay || 0.72;
+            platform.alpha = clamp(1 - platform.vanishTimer / vanishDelay, 0.15, 1);
+            if (platform.vanishTimer > vanishDelay) {
+              platform.solid = false;
+              platform.vanished = true;
+            }
+          }
+        }
+      }
+    }
+
+    function updatePlayer(dt) {
+      const p = game.player;
+      if (!p.alive) return;
+      p.spawnGrace = Math.max(0, p.spawnGrace - dt);
+
+      game.behavior.frames++;
+      if (input.left) game.behavior.leftFrames++;
+      if (input.right) game.behavior.rightFrames++;
+      const previousX = p.x;
+      const previousY = p.y;
+
+      const reversed = game.time < game.reverseUntil;
+      let left = input.left;
+      let right = input.right;
+      if (reversed) [left, right] = [right, left];
+
+      const desired = (right ? 1 : 0) - (left ? 1 : 0);
+      if (desired) {
+        p.vx += desired * PLAYER.accel * dt;
+        p.vx = clamp(p.vx, -PLAYER.maxSpeed, PLAYER.maxSpeed);
+        p.facing = desired;
+      } else {
+        const friction = PLAYER.friction * dt;
+        if (Math.abs(p.vx) <= friction) p.vx = 0;
+        else p.vx -= Math.sign(p.vx) * friction;
+      }
+
+      if (Math.abs(p.vx) < 18 && p.onGround) game.behavior.waitFrames++;
+      if (Math.abs(p.vx) > PLAYER.maxSpeed * 0.72) game.behavior.fastFrames++;
+      game.behavior.distance += Math.abs(p.x - game.behavior.previousX);
+      game.behavior.previousX = p.x;
+
+      if (input.jumpPressed) {
+        p.jumpBuffer = 0.13;
+        game.behavior.jumpAttempts++;
+      } else {
+        p.jumpBuffer = Math.max(0, p.jumpBuffer - dt);
+      }
+
+      if (p.onGround) {
+        p.coyote = 0.12;
+        p.doubleJumpUsed = false;
+      } else {
+        p.coyote = Math.max(0, p.coyote - dt);
+      }
+
+      if (p.jumpBuffer > 0) {
+
+        if (p.coyote > 0) {
+          p.vy = -PLAYER.jump * game.gravityDir;
+          p.onGround = false;
+          p.coyote = 0;
+          p.jumpBuffer = 0;
+          game.behavior.jumps++;
+          playSound("jump");
+          burst(p.x + p.w / 2, p.y + p.h, "#fff8db", 8);
+        }
+
+        else if (!p.doubleJumpUsed) {
+          p.vy = -PLAYER.jump * 0.9 * game.gravityDir;
+          p.doubleJumpUsed = true;
+          p.jumpBuffer = 0;
+          playSound("jump");
+          burst(p.x + p.w / 2, p.y + p.h, "#34f5c5", 12);
+        }
+      }
+
+      p.vy += GRAVITY * game.gravityDir * dt;
+      p.vy = clamp(p.vy, -920, 920);
+
+      p.x += p.vx * dt;
+      resolveHorizontal(p);
+
+      p.y += p.vy * dt;
+      p.onGround = false;
+      const stoodOn = resolveVertical(p, previousY);
+      if (stoodOn && stoodOn.type === "moving") p.x += stoodOn.dx || 0;
+
+      if (stoodOn && stoodOn.type === "disappear" && !stoodOn.vanished) {
+        if (!stoodOn.vanishTimer) {
+          stoodOn.vanishTimer = 0.001;
+          floatingText(stoodOn.x + stoodOn.w / 2, stoodOn.y - 10, "bye", "#ff3d81");
+        }
+      }
+
+      if (stoodOn && stoodOn.type === "fake") {
+        stoodOn.solid = false;
+        stoodOn.alpha = 0.18;
+        game.shake = 7;
+        showToast("That platform has resigned.");
+        playSound("troll");
+        burst(p.x + p.w / 2, p.y + p.h, "#34f5c5", 18);
+      }
+
+      const nearestHazard = nearestActiveHazard(p.x + p.w / 2, p.y + p.h / 2);
+      if (nearestHazard && nearestHazard.distance < 62 && Math.abs(p.vx) > 110) game.behavior.riskFrames++;
+
+      game.runSamples.push({
+        x: p.x,
+        y: p.y,
+        facing: p.facing,
+        t: game.time,
+        gravity: game.gravityDir
+      });
+      if (game.runSamples.length > 900) game.runSamples.shift();
+
+      checkHazards();
+      checkCheckpoints();
+      checkExits();
+      checkButtons();
+      checkFakeWalls();
+
+      if (p.y > H + 220 || p.y + p.h < -220 || p.x < -180) {
+        killPlayer(p.y > H ? "The floor was farther down than advertised." : "You left the map. Bold.");
+      }
+
+      if (p.x > game.width + 180) {
+        killPlayer("You overshot the ending. The game respects the commitment.");
+      }
+
+      if (previousX !== p.x || previousY !== p.y) {
+        judgeSignBehavior(previousX, previousY);
+      }
+    }
+
+    function resolveHorizontal(p) {
+      p.x = clamp(p.x, -120, game.width + 120);
+      for (const platform of game.platforms) {
+        if (!isSolidPlatform(platform) || !rectsOverlap(p, platform)) continue;
+        if (p.vx > 0) p.x = platform.x - p.w;
+        else if (p.vx < 0) p.x = platform.x + platform.w;
+        p.vx = 0;
+      }
+    }
+
+    function resolveVertical(p, previousY) {
+      let stoodOn = null;
+      for (const platform of game.platforms) {
+        if (!isSolidPlatform(platform) || !rectsOverlap(p, platform)) continue;
+        const falling = p.vy * game.gravityDir > 0;
+        if (falling) {
+          if (game.gravityDir > 0 && previousY + p.h <= platform.y + 10) {
+            p.y = platform.y - p.h;
+            p.vy = 0;
+            p.onGround = true;
+            stoodOn = platform;
+          } else if (game.gravityDir < 0 && previousY >= platform.y + platform.h - 10) {
+            p.y = platform.y + platform.h;
+            p.vy = 0;
+            p.onGround = true;
+            stoodOn = platform;
+          }
+        } else {
+          if (game.gravityDir > 0 && previousY >= platform.y + platform.h - 10) {
+            p.y = platform.y + platform.h;
+            p.vy = 0;
+          } else if (game.gravityDir < 0 && previousY + p.h <= platform.y + 10) {
+            p.y = platform.y - p.h;
+            p.vy = 0;
+          }
+        }
+      }
+      return stoodOn;
+    }
+
+    function isSolidPlatform(platform) {
+      return platform.solid && platform.alpha > 0.12;
+    }
+
+    function nearestActiveHazard(x, y) {
+      let best = null;
+      for (const hazard of game.hazards) {
+        if (!hazard.active) continue;
+        const cx = hazard.x + hazard.w / 2;
+        const cy = hazard.y + hazard.h / 2;
+        const distance = pointDistance(x, y, cx, cy);
+        if (!best || distance < best.distance) best = { hazard, distance };
+      }
+      return best;
+    }
+
+    function checkHazards() {
+      const p = game.player;
+      for (const hazard of game.hazards) {
+        if (!hazard.active) continue;
+        if (hazard.type === "invisible" && pointDistance(p.x, p.y, hazard.x, hazard.y) < 130) {
+          hazard.revealed = true;
+        }
+        if (hazard.type === "antiJump" && p.vy * game.gravityDir < -80) {
+          hazard.revealed = true;
+        }
+        if (rectsOverlap(p, hazard)) {
+          killPlayer(hazard.type === "invisible" ? "Invisible trap. Very visible result." : "The spikes were networking.");
+          return;
+        }
+      }
+    }
+
+    function checkCheckpoints() {
+      const p = game.player;
+      for (const checkpoint of game.checkpoints) {
+        if (checkpoint.used || !rectsOverlap(p, checkpoint)) continue;
+        checkpoint.used = true;
+        if (checkpoint.fake) {
+          showToast("Checkpoint saved. (This is a decorative sentence.)");
+          playSound("troll");
+          fakePopup("Checkpoint", "Saved to: nowhere/cloud/nope.chk", true);
+          game.shake = 5;
+        } else {
+          game.checkpointIndex = checkpoint.index;
+          game.spawnX = checkpoint.x + 12;
+          game.spawnY = checkpoint.y - PLAYER.h - 2;
+          showToast("Real checkpoint! The intern let one slip.");
+          playSound("achievement");
+        }
+      }
+    }
+
+    function checkExits() {
+      const p = game.player;
+      for (const exit of game.exits) {
+        if (!exit.fake && exit.moving && exit.moveCount < 3) {
+          const distance = Math.abs((p.x + p.w / 2) - (exit.x + exit.w / 2));
+          if (distance < 105 && p.y + p.h > exit.y && p.y < exit.y + exit.h + 60) {
+            exit.moveCount++;
+            exit.x += 74 + exit.moveCount * 26;
+            exit.x = Math.min(exit.x, game.width - 90);
+            game.exitMercy = game.time + 1.7;
+            showToast(exit.moveCount < 3 ? "The exit needs personal space." : "Fine. The exit is tired.");
+            playSound("troll");
+            game.shake = 8;
+          }
+        }
+        if (rectsOverlap(p, exit)) {
+          if (exit.fake) {
+            triggerFakeVictory(exit);
+          } else {
+            completeLevel();
+          }
+          return;
+        }
+      }
+    }
+
+    function triggerFakeVictory(exit) {
+      if (exit.used) return;
+      exit.used = true;
+      save.stats.fakeVictories++;
+      unlock("fakeVictory");
+      playSound("win");
+      fakeFullScreen("VICTORY!", [
+        "You beat the game.",
+        "Please enjoy this fake completion screen.",
+        "Okay, back in the hole."
+      ], 1500, () => {
+        if (!game || !game.player) return;
+        game.player.x = Math.max(60, exit.x - 180);
+        game.player.y = exit.y - PLAYER.h - 10;
+        game.player.vx = -120;
+        game.player.vy = -240;
+        game.shake = 10;
+      });
+    }
+
+    function checkButtons() {
+      const p = game.player;
+      for (const button of game.buttons) {
+        if (button.pressed || !rectsOverlap(p, button)) continue;
+        button.pressed = true;
+        playSound("troll");
+        game.shake = 7;
+        const actions = ["fakeCrash", "obstacleShuffle", "reverse", "fakeAchievement", "cheatingDisabled"];
+        activateTrap({ type: choose(game.rng, actions), triggered: false, button: true });
+        floatingText(button.x + button.w / 2, button.y - 18, "why", "#ffd166");
+      }
+    }
+
+    function checkFakeWalls() {
+      const p = game.player;
+      for (const wall of game.fakeWalls) {
+        if (wall.touched || !rectsOverlap(p, wall)) continue;
+        wall.touched = true;
+        wall.alpha = 0.18;
+        playSound("achievement");
+        if (wall.secret) startSecretLevel(wall.x);
+      }
+    }
+
+    function updateSigns() {
+      const p = game.player;
+      for (const sign of game.signs) {
+        const close = Math.abs((p.x + p.w / 2) - (sign.x + sign.w / 2)) < 72 && Math.abs(p.y - sign.y) < 100;
+        if (close && !sign.read) {
+          sign.read = true;
+          game.behavior.signReads++;
+          showToast(sign.truth ? `Sign says: ${sign.text} (weirdly honest)` : `Sign says: ${sign.text}`);
+        }
+      }
+    }
+
+    function judgeSignBehavior(previousX, previousY) {
+      for (const sign of game.signs) {
+        if (!sign.read || sign.judged) continue;
+        const p = game.player;
+        const passed = previousX <= sign.x + sign.w && p.x > sign.x + sign.w + 26;
+        if (!passed && Math.abs(p.x - sign.x) < 220) continue;
+        if (!passed && sign.recommendation !== "jump") continue;
+        sign.judged = true;
+        let trusted = false;
+        let ignoredTrue = false;
+        if (sign.recommendation === "jump") {
+          trusted = game.behavior.jumps > 0 && Math.abs(p.x - sign.x) < 260;
+          ignoredTrue = sign.truth && !trusted;
+        } else if (sign.recommendation === "right") {
+          trusted = p.x > sign.x + 80;
+        } else if (sign.recommendation === "wait") {
+          trusted = Math.abs(p.vx) < 30;
+          ignoredTrue = sign.truth && !trusted;
+        } else if (sign.recommendation === "down") {
+          trusted = p.y > sign.y + 60;
+        }
+        if (trusted) {
+          game.behavior.signTrusts++;
+          save.stats.signsTrusted++;
+          unlock("trustedSign");
+          if (!sign.truth) floatingText(sign.x, sign.y - 12, "gottem", "#ff3d81");
+        }
+        if (ignoredTrue) {
+          game.behavior.signIgnores++;
+          save.stats.trueSignsIgnored++;
+          unlock("ignoredTrueSign");
+        }
+      }
+    }
+
+    function updateTrolls(dt) {
+      const p = game.player;
+      for (const trap of game.traps) {
+        if (trap.triggered && trap.type !== "speedTrap") continue;
+        const inTrap = rectsOverlap(p, trap);
+        if (!inTrap) continue;
+        if (trap.type === "speedTrap" && Math.abs(p.vx) < 160) continue;
+        if (trap.type === "forcedJump" && !p.onGround) continue;
+        trap.triggered = true;
+        activateTrap(trap);
+      }
+
+      if (game.mimic) updateMimic(dt);
+      for (const hazard of game.hazards) {
+        if (hazard.vx) {
+          hazard.x += hazard.vx * dt;
+          if (Math.abs(hazard.x - hazard.baseX) > 88) hazard.vx *= -1;
+        }
+      }
+    }
+
+    function activateTrap(trap) {
+      const p = game.player;
+      if (trap.type === "reverse") {
+        game.reverseUntil = Math.max(game.reverseUntil, game.time + (trap.boss ? 3.1 : 2.35));
+        showToast("Controls reversed. Left is emotionally right.");
+        playSound("troll");
+        game.shake = 5;
+      }
+
+      if (trap.type === "gravity") {
+        game.gravityDir *= -1;
+        game.gravityUntil = game.time + (trap.boss ? 4.2 : 2.7);
+        unlock("gravitySurvived");
+        showToast("Gravity reversal. The floor has resigned.");
+        playSound("troll");
+        game.shake = 9;
+      }
+
+      if (trap.type === "fakeLoading") {
+        fakeFullScreen("LOADING", ["Generating fairness...", "Removing fun...", "Failed."], 950);
+        playSound("troll");
+      }
+
+      if (trap.type === "fakeCrash") {
+        fakeFullScreen("GAME CRASHED", ["Error 418: Player trusted platform.", "Just kidding. Unfortunately."], 1250);
+        playSound("death");
+        game.shake = 12;
+      }
+
+      if (trap.type === "bugPopup") {
+        fakePopup("Bug Report", choose(game.rng, [
+          "A player was detected having hope.",
+          "Suspicious skill spike. Nerfing confidence.",
+          "Fairness module stopped responding.",
+          "Exit.exe moved unexpectedly."
+        ]), true);
+        playSound("troll");
+      }
+
+      if (trap.type === "fakeAchievement") {
+        fakePopup("Achievement Unlocked", choose(game.rng, [
+          "Read The Fine Print",
+          "Almost Did Something",
+          "Clicked OK Eventually",
+          "Beta Tester For Pain"
+        ]), false);
+        playSound("achievement");
+      }
+
+      if (trap.type === "teleport") {
+        const current = nearestPathPlatform(p.x);
+        const target = game.path[clamp(current.index - (trap.boss ? 2 : 1), 0, game.path.length - 1)];
+        burst(p.x + p.w / 2, p.y + p.h / 2, "#8ef6ff", 28);
+        p.x = target.x + target.w * 0.45;
+        p.y = target.y - p.h - 4;
+        p.vx *= -0.35;
+        p.vy = -220;
+        showToast("Teleport trap. Your progress has been lightly seasoned.");
+        playSound("troll");
+        game.shake = 8;
+      }
+
+      if (trap.type === "obstacleShuffle") {
+        shuffleNearbyObstacles(trap.x || p.x);
+        showToast("Random obstacle changes. Patch notes said this was fixed.");
+        playSound("troll");
+        game.shake = 6;
+      }
+
+      if (trap.type === "speedTrap") {
+        const platform = game.platforms.find(item => item.id === trap.platformId);
+        if (platform) {
+          game.hazards.push({
+            x: platform.x + platform.w * 0.42,
+            y: platform.y - 22,
+            w: 44,
+            h: 22,
+            type: "spike",
+            active: true,
+            revealed: true,
+            color: "#ff315a",
+            vx: 130,
+            baseX: platform.x + platform.w * 0.42
+          });
+        }
+        showToast("Speed trap. Walking was an option, technically.");
+        playSound("troll");
+      }
+
+      if (trap.type === "forcedJump") {
+        floatingText(p.x + 10, p.y - 10, "jump tax", "#ffd166");
+        p.vy = -PLAYER.jump * 0.75 * game.gravityDir;
+        p.onGround = false;
+        showToast("Forced jump section. The game noticed your knees.");
+        playSound("jump");
+      }
+
+      if (trap.type === "fakeFinal") {
+        fakeFullScreen("FINAL LEVEL", ["For real this time.", "Source: trust me."], 950);
+      }
+
+      if (trap.type === "cheatingDisabled") {
+        showToast("Cheating disabled. Re-enabling for accessibility.");
+        fakePopup("Update", "Cheating disabled successfully. Cheating enabled successfully.", false);
+      }
+
+      if (trap.type === "mimic") {
+        if (!game.mimic) {
+          game.mimic = {
+            delay: 1.15,
+            x: p.x - 110,
+            y: p.y,
+            w: p.w,
+            h: p.h,
+            angry: false
+          };
+          showToast("Mimic trap. It copies your movement, but with worse vibes.");
+          playSound("troll");
+        }
+      }
+    }
+
+    function nearestPathPlatform(x) {
+      let best = { platform: game.path[0], index: 0, distance: Infinity };
+      game.path.forEach((platform, index) => {
+        const distance = Math.abs(x - (platform.x + platform.w / 2));
+        if (distance < best.distance) best = { platform, index, distance };
+      });
+      return best;
+    }
+
+    function shuffleNearbyObstacles(x) {
+      for (const hazard of game.hazards) {
+        if (Math.abs(hazard.x - x) < 420) {
+          hazard.revealed = true;
+          hazard.x += randRange(game.rng, -38, 48);
+          hazard.y += randRange(game.rng, -8, 10);
+          hazard.x = clamp(hazard.x, 40, game.width - 80);
+          burst(hazard.x, hazard.y, "#ff315a", 8);
+        }
+      }
+    }
+
+    function updateMimic(dt) {
+      const mimic = game.mimic;
+      const targetTime = game.time - mimic.delay;
+      let sample = game.runSamples[0];
+      for (let i = game.runSamples.length - 1; i >= 0; i--) {
+        if (game.runSamples[i].t <= targetTime) {
+          sample = game.runSamples[i];
+          break;
+        }
+      }
+      if (sample) {
+        mimic.x += (sample.x - mimic.x) * clamp(dt * 9, 0, 1);
+        mimic.y += (sample.y - mimic.y) * clamp(dt * 9, 0, 1);
+      }
+      if (rectsOverlap(game.player, mimic) && game.player.spawnGrace <= 0) {
+        killPlayer("Your mimic caught you. Technically self-care.");
+      }
+    }
+
+    function killPlayer(customMessage = "") {
+      const p = game && game.player;
+      if (!p || !p.alive) return;
+      p.alive = false;
+      save.levelDeaths++;
+      save.totalDeaths++;
+      save.currentFailStreak++;
+      save.longestFailStreak = Math.max(save.longestFailStreak, save.currentFailStreak);
+      save.mostDeathsOnAnyLevel = Math.max(save.mostDeathsOnAnyLevel, save.levelDeaths);
+      save.heatSpots.push({
+        level: game.levelNumber,
+        mode: game.mode,
+        x: Math.round(p.x),
+        y: Math.round(p.y),
+        width: game.width,
+        at: Date.now()
+      });
+      if (save.heatSpots.length > 180) save.heatSpots.splice(0, save.heatSpots.length - 180);
+      lastGhost = game.runSamples.slice(-480);
+      updateBehaviorProfile(false);
+      checkDeathAchievements();
+      saveGame();
+      playSound("death");
+      game.shake = 18;
+      burst(p.x + p.w / 2, p.y + p.h / 2, "#ff315a", 44);
+      const message = specialDeathMessages[save.totalDeaths] || customMessage || choose(game.rng, deathMessages);
+      showToast(message, 2100);
+      updateHud();
+      setTimeout(() => {
+        if (!game) return;
+        startLevel({
+          levelNumber: game.levelNumber,
+          seed: game.seed,
+          mode: game.mode,
+          dailyDate: game.dailyDate,
+          retry: true,
+          checkpointIndex: game.checkpointIndex,
+          ghost: lastGhost
+        });
+      }, 760);
+    }
+
+    function completeLevel() {
+      if (!game || game.completed) return;
+      game.completed = true;
+      updateBehaviorProfile(true);
+      playSound("win");
+      burst(game.player.x + game.player.w / 2, game.player.y + game.player.h / 2, "#ffd166", 68);
+      game.shake = 10;
+
+      if (game.mode === "daily") {
+        const day = game.dailyDate || pendingDailyDate || getDailyDate();
+        save.dailyRecords[day] = {
+          completed: true,
+          deaths: save.levelDeaths,
+          level: game.levelNumber,
+          at: Date.now()
+        };
+        unlock("dailyWin");
+        save.levelDeaths = 0;
+        save.currentFailStreak = 0;
+        saveGame();
+        fakeFullScreen("DAILY COMPLETE", ["Today's troll has been returned to the lab.", "Come back tomorrow for a new betrayal."], 1600, showMainMenu);
+        return;
+      }
+
+      if (game.mode === "secret") {
+        save.levelDeaths = 0;
+        save.currentFailStreak = 0;
+        saveGame();
+        fakeFullScreen("SECRET CLEARED", ["A hidden level has been beaten.", "The wall is furious."], 1400, () => startNormalLevel(false));
+        return;
+      }
+
+      const completedDeaths = save.levelDeaths;
+      save.levelsCompleted++;
+      save.completedDeathsTotal += completedDeaths;
+      save.currentLevel++;
+      save.levelDeaths = 0;
+      save.currentFailStreak = 0;
+      save.currentLevelSeed = hashString(`normal:${save.currentLevel}:${Date.now()}:${save.totalDeaths}:${Math.random()}`);
+      if (game.bossType) {
+        save.stats.bossWins++;
+        unlock("bossDefeated");
+      }
+      checkLevelAchievements();
+      saveGame();
+
+      const line = game.bossType
+        ? "Boss defeated. It is updating its resume."
+        : choose(game.rng, [
+          "Level complete. The next one read your diary.",
+          "You win! For now. Briefly. Suspiciously.",
+          "Exit reached. The game is pretending to clap.",
+          "Nice. The algorithm took notes."
+        ]);
+      fakeFullScreen("LEVEL CLEAR", [line, `Deaths this level: ${completedDeaths}`], 1150, () => startNormalLevel(false));
+    }
+
+    function updateBehaviorProfile(won) {
+      if (!game || !game.behavior.frames) return;
+      const b = game.behavior;
+      const seconds = Math.max(1, game.time);
+      const jumpRate = clamp(b.jumps / seconds, 0, 1.6) / 1.6;
+      const waitRatio = b.waitFrames / b.frames;
+      const avgSpeed = b.distance / seconds;
+      const riskRatio = b.riskFrames / b.frames;
+      const signAttempts = Math.max(1, b.signTrusts + b.signIgnores);
+      const signTrust = b.signReads ? b.signTrusts / signAttempts : save.behaviorProfile.signTrust;
+      const leftRightFlip = Math.min(b.leftFrames, b.rightFrames) / Math.max(1, b.frames);
+      const blend = won ? 0.28 : 0.18;
+      const profile = save.behaviorProfile;
+      profile.jumpRate = lerp(profile.jumpRate, jumpRate, blend);
+      profile.waitRatio = lerp(profile.waitRatio, waitRatio, blend);
+      profile.avgSpeed = lerp(profile.avgSpeed, avgSpeed, blend);
+      profile.riskRatio = lerp(profile.riskRatio, riskRatio, blend);
+      profile.signTrust = lerp(profile.signTrust, signTrust, blend);
+      profile.leftRightFlip = lerp(profile.leftRightFlip, leftRightFlip, blend);
+    }
+
+    function lerp(a, b, t) {
+      return a + (b - a) * t;
+    }
+
+    function burst(x, y, color, count) {
+      if (!game) return;
+      for (let i = 0; i < count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = randRange(Math.random, 70, 330);
+        game.particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          life: randRange(Math.random, 0.35, 0.85),
+          maxLife: 0.85,
+          size: randRange(Math.random, 3, 8),
+          color
+        });
+      }
+    }
+
+    function floatingText(x, y, text, color) {
+      game.floatingTexts.push({ x, y, text, color, life: 1.1 });
+    }
+
+    function updateParticles(dt) {
+      for (let i = game.particles.length - 1; i >= 0; i--) {
+        const particle = game.particles[i];
+        particle.life -= dt;
+        particle.vy += 420 * dt;
+        particle.x += particle.vx * dt;
+        particle.y += particle.vy * dt;
+        if (particle.life <= 0) game.particles.splice(i, 1);
+      }
+      for (let i = game.floatingTexts.length - 1; i >= 0; i--) {
+        const text = game.floatingTexts[i];
+        text.life -= dt;
+        text.y -= 34 * dt;
+        if (text.life <= 0) game.floatingTexts.splice(i, 1);
+      }
+      game.shake = Math.max(0, game.shake - dt * 34);
+    }
+
+    function updateCamera(dt) {
+      const p = game.player;
+      const target = clamp(p.x - W * 0.38, 0, Math.max(0, game.width - W));
+      game.cameraX += (target - game.cameraX) * clamp(dt * 7, 0, 1);
+    }
+
+    function updateHud() {
+      if (!game) return;
+      hudStats.innerHTML = `
+        <div class="hudChip">${game.mode === "daily" ? "Daily" : game.mode === "secret" ? "Secret" : "Level"} ${game.mode === "normal" ? save.currentLevel : game.levelNumber}</div>
+        <div class="hudChip">Deaths This Level: ${save.levelDeaths}</div>
+        <div class="hudChip">Total Deaths: ${save.totalDeaths}</div>
+        <div class="hudChip">Fail Streak: ${save.currentFailStreak}</div>
+        <div class="hudChip">${getTitle()}</div>
+      `;
+    }
+
+    function render() {
+      if (screen !== "game" || !game) {
+        renderMenuBackground();
+        return;
+      }
+
+      const shakeX = game.shake ? randRange(Math.random, -game.shake, game.shake) : 0;
+      const shakeY = game.shake ? randRange(Math.random, -game.shake, game.shake) : 0;
+      ctx.save();
+      ctx.translate(Math.round(-game.cameraX + shakeX), Math.round(shakeY));
+
+      drawBackground();
+      drawHeatmap();
+      drawGhost();
+      drawPlatforms();
+      drawFakeWalls();
+      drawTrapsAndDecor();
+      drawHazards();
+      drawCheckpoints();
+      drawButtons();
+      drawExits();
+      drawSigns();
+      drawMimic();
+      drawPlayer();
+      drawParticles();
+      ctx.restore();
+
+      drawVignette();
+      if (game.gravityDir < 0) drawGravityWarning();
+      if (game.time < game.reverseUntil) drawReverseWarning();
+    }
+
+    function renderMenuBackground() {
+      const t = performance.now() / 1000;
+      const gradient = ctx.createLinearGradient(0, 0, 0, H);
+      gradient.addColorStop(0, "#62d9ff");
+      gradient.addColorStop(1, "#7161ff");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, W, H);
+      for (let i = 0; i < 50; i++) {
+        const x = (i * 173 + t * (12 + i % 5)) % (W + 120) - 60;
+        const y = 40 + (i * 47) % 410;
+        ctx.fillStyle = i % 2 ? "rgba(255,255,255,.16)" : "rgba(255,209,102,.2)";
+        pixelRect(x, y + Math.sin(t + i) * 5, 28 + (i % 4) * 12, 8 + (i % 3) * 4);
+      }
+    }
+
+    function drawBackground() {
+      const sky = ctx.createLinearGradient(0, 0, 0, H);
+      sky.addColorStop(0, `hsl(${game.skyHue}, 98%, 68%)`);
+      sky.addColorStop(0.55, "#8ef6ff");
+      sky.addColorStop(1, "#6d3dff");
+      ctx.fillStyle = sky;
+      ctx.fillRect(game.cameraX - 20, 0, W + 40, H);
+
+      const cam = game.cameraX;
+      for (let layer = 0; layer < 3; layer++) {
+        const speed = 0.12 + layer * 0.08;
+        const size = 32 + layer * 28;
+        ctx.fillStyle = layer === 0 ? "rgba(255,255,255,.18)" : layer === 1 ? "rgba(255,248,219,.16)" : "rgba(32,22,83,.18)";
+        for (let x = -size * 2; x < game.width + size * 2; x += size * 3.2) {
+          const px = x + ((cam * speed) % (size * 3.2));
+          const y = 48 + layer * 70 + Math.sin((x + game.time * 30) * 0.01) * 12;
+          pixelRect(px, y, size * 1.7, size * 0.42);
+          pixelRect(px + size * 0.5, y - size * 0.24, size, size * 0.36);
+        }
+      }
+
+      ctx.fillStyle = "rgba(23,18,45,.22)";
+      for (let x = -120; x < game.width + 140; x += 96) {
+        const h = 60 + ((x * 13) % 80 + 80) % 80;
+        pixelRect(x, H - h, 64, h);
+        pixelRect(x + 16, H - h - 18, 32, 18);
+      }
+    }
+
+    function drawHeatmap() {
+      if (!game.showHeatmap) return;
+      const spots = save.heatSpots.filter(spot => spot.mode === game.mode && Math.abs(spot.level - game.levelNumber) <= 1);
+      for (const spot of spots) {
+        const alpha = spot.level === game.levelNumber ? 0.18 : 0.08;
+        const radius = spot.level === game.levelNumber ? 42 : 28;
+        const gradient = ctx.createRadialGradient(spot.x, spot.y, 4, spot.x, spot.y, radius);
+        gradient.addColorStop(0, `rgba(255,49,90,${alpha * 1.8})`);
+        gradient.addColorStop(1, "rgba(255,49,90,0)");
+        ctx.fillStyle = gradient;
+        ctx.fillRect(spot.x - radius, spot.y - radius, radius * 2, radius * 2);
+      }
+    }
+
+    function drawGhost() {
+      if (!game.replayGhost || !game.replayGhost.length) return;
+      ctx.save();
+      ctx.globalAlpha = 0.26;
+      for (let i = 0; i < game.replayGhost.length; i += 16) {
+        const sample = game.replayGhost[i];
+        drawPlayerBody(sample.x, sample.y, sample.facing, "#fff8db", "#8ef6ff", true);
+      }
+      ctx.restore();
+    }
+
+    function drawPlatforms() {
+      for (const platform of game.platforms) {
+        ctx.save();
+        ctx.globalAlpha = platform.alpha ?? 1;
+        let color = platform.color || "#ffd166";
+        if (platform.type === "fake") color = "#90ffb5";
+        if (platform.type === "disappear") color = "#ffdd75";
+        if (platform.type === "moving") color = "#8ef6ff";
+        if (platform.type === "ceiling") color = "#b18cff";
+        drawBlock(platform.x, platform.y, platform.w, platform.h, color);
+        if (platform.type === "disappear") {
+          ctx.fillStyle = "rgba(255,49,90,.58)";
+          for (let x = platform.x + 8; x < platform.x + platform.w - 6; x += 18) {
+            pixelRect(x, platform.y + 8, 8, 8);
+          }
+        }
+        if (platform.type === "moving") {
+          ctx.fillStyle = "rgba(23,18,45,.42)";
+          pixelRect(platform.baseX - platform.amplitude, platform.y + platform.h + 8, platform.amplitude * 2 + platform.w, 5);
+        }
+        ctx.restore();
+      }
+    }
+
+    function drawBlock(x, y, w, h, color) {
+      ctx.fillStyle = "rgba(23,18,45,.35)";
+      pixelRect(x + 6, y + 8, w, h);
+      ctx.fillStyle = color;
+      pixelRect(x, y, w, h);
+      ctx.fillStyle = "rgba(255,255,255,.36)";
+      pixelRect(x + 4, y + 4, w - 8, 5);
+      ctx.fillStyle = "rgba(23,18,45,.25)";
+      pixelRect(x + 5, y + h - 7, w - 10, 5);
+      ctx.strokeStyle = "rgba(23,18,45,.72)";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(Math.round(x) + 1.5, Math.round(y) + 1.5, Math.round(w) - 3, Math.round(h) - 3);
+    }
+
+    function drawHazards() {
+      for (const hazard of game.hazards) {
+        if (hazard.type === "invisible" && !hazard.revealed) {
+          ctx.fillStyle = "rgba(255,255,255,.06)";
+          pixelRect(hazard.x, hazard.y + hazard.h - 3, hazard.w, 3);
+          continue;
+        }
+        ctx.fillStyle = hazard.type === "antiJump" ? "#ff8ad8" : hazard.color;
+        if (hazard.type === "antiJump") {
+          drawBlock(hazard.x, hazard.y, hazard.w, hazard.h, "#ff8ad8");
+          ctx.fillStyle = "#fff8db";
+          pixelRect(hazard.x + 6, hazard.y + 5, hazard.w - 12, 4);
+        } else {
+          const spikes = Math.max(1, Math.floor(hazard.w / 14));
+          for (let i = 0; i < spikes; i++) {
+            const sx = hazard.x + i * (hazard.w / spikes);
+            ctx.beginPath();
+            ctx.moveTo(sx, hazard.y + hazard.h);
+            ctx.lineTo(sx + hazard.w / spikes / 2, hazard.y);
+            ctx.lineTo(sx + hazard.w / spikes, hazard.y + hazard.h);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = "rgba(23,18,45,.75)";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+          }
+        }
+      }
+    }
+
+    function drawTrapsAndDecor() {
+      for (const arrow of game.arrows) {
+        ctx.save();
+        ctx.translate(arrow.x, arrow.y);
+        ctx.scale(arrow.dir, 1);
+        ctx.fillStyle = arrow.wrong ? "rgba(255,61,129,.7)" : "rgba(255,255,255,.7)";
+        pixelRect(-20, -6, 28, 12);
+        ctx.beginPath();
+        ctx.moveTo(8, -17);
+        ctx.lineTo(30, 0);
+        ctx.lineTo(8, 17);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+      for (const trap of game.traps) {
+        if (trap.type === "teleport") {
+          ctx.strokeStyle = "rgba(142,246,255,.7)";
+          ctx.lineWidth = 5;
+          ctx.beginPath();
+          ctx.ellipse(trap.x + trap.w / 2, trap.y + trap.h / 2, 20, 30, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+    }
+
+    function drawFakeWalls() {
+      for (const wall of game.fakeWalls) {
+        ctx.save();
+        ctx.globalAlpha = wall.touched ? 0.18 : 0.92;
+        drawBlock(wall.x, wall.y, wall.w, wall.h, "#7250d8");
+        ctx.fillStyle = "rgba(255,255,255,.18)";
+        pixelRect(wall.x + 6, wall.y + 9, wall.w - 12, 8);
+        ctx.restore();
+      }
+    }
+
+    function drawCheckpoints() {
+      for (const checkpoint of game.checkpoints) {
+        ctx.fillStyle = checkpoint.fake ? "#ff3d81" : "#34f5c5";
+        pixelRect(checkpoint.x, checkpoint.y, 5, checkpoint.h);
+        ctx.fillStyle = checkpoint.used ? "#fff8db" : (checkpoint.fake ? "#ff8ad8" : "#8effdf");
+        pixelRect(checkpoint.x + 5, checkpoint.y + 3, 30, 18);
+        ctx.fillStyle = "rgba(23,18,45,.28)";
+        pixelRect(checkpoint.x + 5, checkpoint.y + 15, 22, 6);
+      }
+    }
+
+    function drawButtons() {
+      for (const button of game.buttons) {
+        drawBlock(button.x, button.y + (button.pressed ? 6 : 0), button.w, button.h, button.pressed ? "#897a6c" : "#ff3d81");
+        ctx.fillStyle = "#fff8db";
+        ctx.font = "700 9px Trebuchet MS";
+        ctx.textAlign = "center";
+        ctx.fillText(button.label, button.x + button.w / 2, button.y - 6);
+      }
+    }
+
+    function drawExits() {
+      for (const exit of game.exits) {
+        const pulse = Math.sin(game.time * 6 + exit.x * 0.01) * 0.5 + 0.5;
+        ctx.fillStyle = exit.fake ? "#ff3d81" : "#34f5c5";
+        pixelRect(exit.x - 8, exit.y + 6, exit.w + 16, exit.h - 6);
+        ctx.fillStyle = exit.fake ? "#631942" : "#153e49";
+        pixelRect(exit.x, exit.y, exit.w, exit.h);
+        ctx.fillStyle = exit.fake ? `rgba(255,255,255,${0.18 + pulse * 0.22})` : `rgba(255,255,255,${0.28 + pulse * 0.22})`;
+        pixelRect(exit.x + 9, exit.y + 10, exit.w - 18, exit.h - 20);
+        ctx.fillStyle = "#fff8db";
+        ctx.font = "900 11px Trebuchet MS";
+        ctx.textAlign = "center";
+        ctx.fillText(exit.label, exit.x + exit.w / 2, exit.y - 8);
+      }
+    }
+
+    function drawSigns() {
+      const p = game.player;
+      for (const sign of game.signs) {
+        ctx.fillStyle = "#6b421d";
+        pixelRect(sign.x + 16, sign.y + 28, 6, 28);
+        drawBlock(sign.x, sign.y, sign.w, 28, sign.truth ? "#ffd166" : "#fff8db");
+        ctx.fillStyle = "#17122d";
+        ctx.font = "900 9px Trebuchet MS";
+        ctx.textAlign = "center";
+        ctx.fillText(sign.text, sign.x + sign.w / 2, sign.y + 18);
+        const close = Math.abs((p.x + p.w / 2) - (sign.x + sign.w / 2)) < 78 && Math.abs(p.y - sign.y) < 110;
+        if (close) {
+          ctx.fillStyle = "rgba(23,18,45,.82)";
+          roundRect(sign.x - 26, sign.y - 36, sign.w + 52, 24, 8);
+          ctx.fillStyle = "#fff8db";
+          ctx.font = "800 11px Trebuchet MS";
+          ctx.fillText(sign.truth ? "probably true?" : "official advice", sign.x + sign.w / 2, sign.y - 20);
+        }
+      }
+    }
+
+    function drawMimic() {
+      if (!game.mimic) return;
+      ctx.save();
+      ctx.globalAlpha = 0.86;
+      drawPlayerBody(game.mimic.x, game.mimic.y, -game.player.facing, "#ff315a", "#17122d", false);
+      ctx.restore();
+    }
+
+    function drawPlayer() {
+      const p = game.player;
+      if (!p.alive && Math.floor(game.time * 18) % 2) return;
+      drawPlayerBody(p.x, p.y, p.facing, "#fff8db", game.accent, false);
+    }
+
+    function drawPlayerBody(x, y, facing, skin, shirt, ghost) {
+      const bob = ghost ? 0 : Math.sin(game.time * 12) * (game.player.onGround ? 1 : 0);
+      ctx.save();
+      ctx.translate(Math.round(x), Math.round(y + bob));
+      if (facing < 0) {
+        ctx.translate(PLAYER.w, 0);
+        ctx.scale(-1, 1);
+      }
+      ctx.fillStyle = "rgba(23,18,45,.28)";
+      pixelRect(2, PLAYER.h + 1, PLAYER.w - 2, 5);
+      ctx.fillStyle = shirt;
+      pixelRect(3, 12, 19, 18);
+      ctx.fillStyle = skin;
+      pixelRect(5, 2, 16, 14);
+      ctx.fillStyle = "#17122d";
+      pixelRect(15, 7, 4, 4);
+      ctx.fillStyle = "#ff3d81";
+      pixelRect(7, 17, 13, 4);
+      ctx.fillStyle = "#17122d";
+      pixelRect(4, 30, 7, 5);
+      pixelRect(16, 30, 7, 5);
+      ctx.fillStyle = "rgba(255,255,255,.45)";
+      pixelRect(7, 4, 5, 3);
+      ctx.restore();
+    }
+
+    function drawParticles() {
+      for (const particle of game.particles) {
+        ctx.globalAlpha = clamp(particle.life / particle.maxLife, 0, 1);
+        ctx.fillStyle = particle.color;
+        pixelRect(particle.x, particle.y, particle.size, particle.size);
+        ctx.globalAlpha = 1;
+      }
+      for (const text of game.floatingTexts) {
+        ctx.globalAlpha = clamp(text.life, 0, 1);
+        ctx.fillStyle = text.color;
+        ctx.font = "900 16px Trebuchet MS";
+        ctx.textAlign = "center";
+        ctx.fillText(text.text, text.x, text.y);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function drawVignette() {
+      const gradient = ctx.createRadialGradient(W / 2, H / 2, 120, W / 2, H / 2, W * 0.7);
+      gradient.addColorStop(0, "rgba(0,0,0,0)");
+      gradient.addColorStop(1, "rgba(0,0,0,.28)");
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, W, H);
+    }
+
+    function drawGravityWarning() {
+      ctx.fillStyle = "rgba(255,61,129,.16)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#fff8db";
+      ctx.font = "900 20px Trebuchet MS";
+      ctx.textAlign = "center";
+      ctx.fillText("GRAVITY IS CURRENTLY DOING A BIT", W / 2, H - 36);
+    }
+
+    function drawReverseWarning() {
+      ctx.fillStyle = "rgba(255,209,102,.16)";
+      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = "#17122d";
+      ctx.font = "900 18px Trebuchet MS";
+      ctx.textAlign = "center";
+      ctx.fillText("← means → because comedy", W / 2, 58);
+    }
+
+    function pixelRect(x, y, w, h) {
+      ctx.fillRect(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+    }
+
+    function roundRect(x, y, w, h, radius) {
+      ctx.beginPath();
+      ctx.moveTo(x + radius, y);
+      ctx.arcTo(x + w, y, x + w, y + h, radius);
+      ctx.arcTo(x + w, y + h, x, y + h, radius);
+      ctx.arcTo(x, y + h, x, y, radius);
+      ctx.arcTo(x, y, x + w, y, radius);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function setupInput() {
+      window.addEventListener("keydown", event => {
+        startAudio();
+        if (event.repeat && ["Space", "ArrowUp", "KeyW"].includes(event.code)) return;
+        if (screen === "game" && ["ArrowLeft", "ArrowRight", "ArrowUp", "Space", "KeyA", "KeyD", "KeyW", "KeyH", "Escape", "KeyR"].includes(event.code)) {
+          event.preventDefault();
+        }
+        if (event.code === "ArrowLeft" || event.code === "KeyA") input.left = true;
+        if (event.code === "ArrowRight" || event.code === "KeyD") input.right = true;
+        if (event.code === "ArrowUp" || event.code === "KeyW" || event.code === "Space") {
+          input.jump = true;
+          input.jumpPressed = true;
+        }
+        if (event.code === "KeyH" && game) {
+          game.showHeatmap = !game.showHeatmap;
+          showToast(game.showHeatmap ? "Heatmap on. Red blobs are your greatest hits." : "Heatmap off. Denial mode.");
+        }
+        if (event.code === "KeyR" && game) killPlayer("Manual retry. The game accepts your offering.");
+        if (event.code === "Escape") {
+          if (screen === "game") {
+            saveGame();
+            showMainMenu();
+          } else {
+            showMainMenu();
+          }
+        }
+      });
+
+      window.addEventListener("keyup", event => {
+        if (event.code === "ArrowLeft" || event.code === "KeyA") input.left = false;
+        if (event.code === "ArrowRight" || event.code === "KeyD") input.right = false;
+        if (event.code === "ArrowUp" || event.code === "KeyW" || event.code === "Space") input.jump = false;
+      });
+
+      document.querySelectorAll(".touchBtn").forEach(button => {
+        const control = button.dataset.control;
+        const set = value => {
+          startAudio();
+          input.usingTouch = true;
+          input[control] = value;
+          if (control === "jump" && value) input.jumpPressed = true;
+          button.classList.toggle("active", value);
+        };
+        button.addEventListener("pointerdown", event => {
+          event.preventDefault();
+          button.setPointerCapture(event.pointerId);
+          set(true);
+        });
+        button.addEventListener("pointerup", event => {
+          event.preventDefault();
+          set(false);
+        });
+        button.addEventListener("pointercancel", () => set(false));
+        button.addEventListener("lostpointercapture", () => set(false));
+      });
+    }
+
+    function loop(now) {
+      const dt = (now - lastFrame) / 1000;
+      lastFrame = now;
+      update(dt);
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    setupInput();
+    showMainMenu();
+    updateHud();
+    requestAnimationFrame(loop);
+  })();
+  </script>
+</body>
+</html>
